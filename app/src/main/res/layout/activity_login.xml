@@ -9,7 +9,7 @@
     android:padding="16dp"
     android:background="@color/light_background">
 
-    <com.google.android.material.textfield.TextInputEditText
+    <EditText
         android:id="@+id/username"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -23,7 +23,7 @@
         android:textColor="@color/primary_text"
         android:importantForAccessibility="yes" />
 
-    <com.google.android.material.textfield.TextInputEditText
+    <EditText
         android:id="@+id/password"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -38,7 +38,7 @@
         android:textColor="@color/primary_text"
         android:importantForAccessibility="yes" />
 
-    <com.google.android.material.button.MaterialButton
+    <Button
         android:id="@+id/login_button"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -55,7 +55,7 @@
         android:layout_marginStart="10dp"
         android:layout_marginEnd="10dp" />
 
-    <com.google.android.material.button.MaterialButton
+    <Button
         android:id="@+id/signup_button"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -70,4 +70,15 @@
         android:layout_marginStart="10dp"
         android:layout_marginEnd="10dp"
         app:strokeWidth="0dp" />
+
+    <Button
+        android:id="@+id/savebtn"
+        android:text="저장하기"
+        android:layout_margin="20dp"
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+
+
+        />
+
 </LinearLayout>

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <TextView
+        android:id="@+id/employeeName"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="이름: 예시"
+        android:textSize="18sp" />
+
+    <TextView
+        android:id="@+id/employeeSalary"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="급여: 예시 급여"
+        android:textSize="16sp" />
+
+    <TextView
+        android:id="@+id/employeeWorkingHours"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="근무시간: 예시 근무시간"
+        android:textSize="16sp" />
+
+</LinearLayout>

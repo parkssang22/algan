@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "156671850094",
+    "firebase_url": "https://fir-0107-ccc9b-default-rtdb.firebaseio.com",
+    "project_id": "fir-0107-ccc9b",
+    "storage_bucket": "fir-0107-ccc9b.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:156671850094:android:57689f69ede1bb702a587f",
+        "android_client_info": {
+          "package_name": "com.capstone.Algan"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyACA5m_BxwfyVPpAAM6yUqNwiKbsnzXiyk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

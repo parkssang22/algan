@@ -13,7 +13,7 @@ class UserService {
     }
 
     fun registerUser(
-        id: Int,
+        id: String,
         username: String,
         password: String,
         role: String,

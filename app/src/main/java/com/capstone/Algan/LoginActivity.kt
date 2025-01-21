@@ -2,52 +2,69 @@ package com.capstone.Algan
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.widget.Button
 import android.widget.EditText
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.database.ktx.database
+import com.google.firebase.ktx.Firebase
 
 class LoginActivity : AppCompatActivity() {
+
+    private lateinit var auth: FirebaseAuth
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_login)
+
+        auth = Firebase.auth
+
         // ActionBar 숨기기
         supportActionBar?.hide()
 
-        val usernameField = findViewById<EditText>(R.id.username)
-        val passwordField = findViewById<EditText>(R.id.password)
-        val loginButton = findViewById<Button>(R.id.login_button)
         val signupButton = findViewById<Button>(R.id.signup_button)
-
-        loginButton.setOnClickListener {
-            val username = usernameField.text.toString()
-            val password = passwordField.text.toString()
-
-            if (username.isNotEmpty() && password.isNotEmpty()) {
-                // 로그인 처리 로직 호출
-                val success = login(username, password)
-                if (success) {
-                    Toast.makeText(this, "로그인 성공~~!", Toast.LENGTH_SHORT).show()
-                    // 로그인 성공 후 MainActivity로 이동
-                    startActivity(Intent(this, MainActivity::class.java))
-                    finish() // 로그인 화면 종료
-                } else {
-                    Toast.makeText(this, "로그인 실패~~!", Toast.LENGTH_SHORT).show()
-                }
-            } else {
-                Toast.makeText(this, "모든 필드를 입력하세요", Toast.LENGTH_SHORT).show()
-            }
-        }
-
         signupButton.setOnClickListener {
-            // 회원가입 화면으로 이동
-            startActivity(Intent(this, SignUpActivity::class.java))
+            // SignUpActivity로 이동
+            val intent = Intent(this, SignUpActivity::class.java)
+            startActivity(intent)
         }
-    }
 
-    private fun login(username: String, password: String): Boolean {
-        // TODO: 로그인 로직 구현
-        return username == "test" && password == "1234" // 임시로 설정한 아이디 비번
+        val loginButton = findViewById<Button>(R.id.login_button)
+        loginButton.setOnClickListener {
+            val usernameField = findViewById<EditText>(R.id.username)
+            val passwordField = findViewById<EditText>(R.id.password)
+            auth.signInWithEmailAndPassword(usernameField.text.toString(), passwordField.text.toString())
+                .addOnCompleteListener(this) { task ->
+                    if (task.isSuccessful) {
+                        // Sign in success, update UI with the signed-in user's information
+                        Toast.makeText(this, "성공", Toast.LENGTH_LONG).show()
+
+                        // MainActivity로 이동
+                        val intent = Intent(this, MainActivity::class.java)
+                        startActivity(intent)
+                        finish() // 현재 액티비티 종료
+
+                    } else {
+                        // If sign in fails, display a message to the user.
+                        Toast.makeText(this, "실패", Toast.LENGTH_LONG).show()
+                    }
+                }
+        }
+
+        val savebtn = findViewById<Button>(R.id.savebtn)
+        savebtn.setOnClickListener {
+            val database = Firebase.database
+            val myRef = database.getReference("message")
+
+            myRef.setValue("Hello, World!")
+        }
     }
 }
+
+
+
+
+

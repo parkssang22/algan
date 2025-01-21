@@ -3,7 +3,7 @@ package com.capstone.Algan
 class UserController(private val userService: UserService) {
 
     fun handleUserRegistration(
-        id: Int,
+        id: String,
         username: String,
         password: String,
         role: String,

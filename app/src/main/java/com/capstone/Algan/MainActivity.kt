@@ -70,4 +70,5 @@ class MainActivity : AppCompatActivity() {
         }
         backPressedTime = currentTime
     }
+
 }
