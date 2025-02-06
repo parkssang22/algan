@@ -25,10 +25,10 @@ class SignUpActivity : AppCompatActivity() {
 
         val emailEditText: EditText = findViewById(R.id.emailEditText)
         val passwordEditText: EditText = findViewById(R.id.passwordEditText)
-        val idField: EditText = findViewById(R.id.idEditText)
         val usernameField: EditText = findViewById(R.id.usernameEditText)
         val phoneField: EditText = findViewById(R.id.phoneEditText)
         val roleGroup: RadioGroup = findViewById(R.id.roleGroup)
+        val companyNameEditText = findViewById<EditText>(R.id.companyNameEditText) // EditText로 명시
         val signupButton: Button = findViewById(R.id.signupButton)
 
         // 뒤로가기 버튼 클릭 리스너 추가
@@ -38,48 +38,66 @@ class SignUpActivity : AppCompatActivity() {
         }
 
         signupButton.setOnClickListener {
-            val id = idField.text.toString()
             val username = usernameField.text.toString()
             val password = passwordEditText.text.toString()
             val email = emailEditText.text.toString()
             val phone = phoneField.text.toString()
+            val companyName = companyNameEditText.text.toString()
             val selectedRoleId = roleGroup.checkedRadioButtonId
             val role = findViewById<RadioButton>(selectedRoleId)?.text.toString()
 
             // 필드 체크 (빈 값이면 에러 메시지)
-            if (id.isEmpty() || username.isEmpty() || password.isEmpty() || email.isEmpty() || phone.isEmpty() || role.isEmpty()) {
+            if (username.isEmpty() || password.isEmpty() || email.isEmpty() || phone.isEmpty() || companyName.isEmpty() || role.isEmpty()) {
                 Toast.makeText(this, "모든 필드를 입력하세요.", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
 
             // 회원가입 처리
-            signUp(id, username, password, role, email, phone)
+            signUp(username, password, role, email, phone, companyName)
         }
     }
 
-    private fun signUp(id: String, username: String, password: String, role: String, email: String, phone: String) {
+    private fun signUp(
+        username: String,
+        password: String,
+        role: String,
+        email: String,
+        phone: String,
+        companyName: String
+    ) {
         // Firebase Authentication을 사용하여 사용자 생성
         auth.createUserWithEmailAndPassword(email, password)
             .addOnCompleteListener(this) { task ->
                 if (task.isSuccessful) {
                     // 회원가입 성공 시 Realtime Database에 사용자 정보 저장
                     val userId = auth.currentUser!!.uid
-                    val user = User(id, username, password, email, phone, role)
+                    val user = User(
+                        uid = userId,
+                        username = username,
+                        role = role,
+                        phone = phone,
+                        email = email,
+                        companyName = companyName
+                    )
 
-                    // Realtime Database에 사용자 정보 저장
-                    database.reference.child("users").child(userId).setValue(user)
+                    // Realtime Database에 사용자 정보 저장 (회사 이름 아래에 저장)
+                    database.reference.child("companies").child(companyName).child(userId)
+                        .setValue(user)
                         .addOnSuccessListener {
                             Toast.makeText(this, "회원가입 성공!", Toast.LENGTH_SHORT).show()
                             finish()  // 회원가입 후 현재 화면 종료
                         }
                         .addOnFailureListener { e ->
-                            Toast.makeText(this, "Realtime Database 저장 실패: ${e.message}", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(
+                                this,
+                                "Realtime Database 저장 실패: ${e.message}",
+                                Toast.LENGTH_SHORT
+                            ).show()
                         }
                 } else {
-                    Toast.makeText(this, "회원가입 실패: ${task.exception?.message}", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, "회원가입 실패: ${task.exception?.message}", Toast.LENGTH_SHORT)
+                        .show()
                 }
             }
     }
 }
-
-

@@ -1,11 +1,14 @@
 package com.capstone.Algan
 
+import android.app.Application
+import android.content.Intent
 import android.os.Bundle
-import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
+import com.capstone.Algan.fragments.NoticeBoardFragment
 import com.google.android.material.bottomnavigation.BottomNavigationView
+import com.google.firebase.FirebaseApp
 
 class MainActivity : AppCompatActivity() {
 
@@ -14,8 +17,22 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
         // ActionBar 숨기기
         supportActionBar?.hide()
+
+        // 툴바 설정
+        val toolbar = findViewById<androidx.appcompat.widget.Toolbar>(R.id.toolbar)
+        toolbar.setOnMenuItemClickListener { item ->
+            when (item.itemId) {
+                R.id.menu_info -> {
+                    // 내정보 화면으로 이동
+                    startActivity(Intent(this, InfoActivity::class.java))
+                    true
+                }
+                else -> false
+            }
+        }
 
         val bottomNavigationView = findViewById<BottomNavigationView>(R.id.bottom_navigation_view)
 
@@ -26,19 +43,19 @@ class MainActivity : AppCompatActivity() {
         bottomNavigationView.setOnNavigationItemSelectedListener { item ->
             when (item.itemId) {
                 R.id.fragment_salary -> {
-                    replaceFragment(SalaryFragment()) // 급여 화면으로 이동
+                    replaceFragment(SalaryFragment())
                     true
                 }
                 R.id.fragment_noticeboard -> {
-                    replaceFragment(NoticeBoardFragment()) // 게시판 화면으로 이동
+                    replaceFragment(NoticeBoardFragment())
                     true
                 }
                 R.id.fragment_checklist -> {
-                    replaceFragment(ChecklistFragment()) // 체크리스트 화면으로 이동
+                    replaceFragment(ChecklistFragment())
                     true
                 }
                 R.id.fragment_workrecord -> {
-                    replaceFragment(WorkRecordFragment()) // 출퇴근 기록 화면으로 이동
+                    replaceFragment(WorkRecordFragment())
                     true
                 }
                 else -> false
@@ -46,10 +63,11 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    // Fragment 교체 함수
+    // Fragment 교체 함수 (클래스의 멤버 함수로 정의)
     private fun replaceFragment(fragment: Fragment) {
         val transaction = supportFragmentManager.beginTransaction()
         transaction.replace(R.id.main_container, fragment)
+        transaction.addToBackStack(null) // 이전 Fragment로 돌아갈 수 있도록 추가
         transaction.commit()
     }
 
@@ -61,14 +79,20 @@ class MainActivity : AppCompatActivity() {
             return
         }
 
-        AlertDialog.Builder(this).apply {
-            setTitle("앱 종료")
-            setMessage("앱을 종료하시겠습니까?")
-            setPositiveButton("예") { _, _ -> finish() }
-            setNegativeButton("아니요", null)
-            show()
-        }
+        AlertDialog.Builder(this)
+            .setTitle("앱 종료")
+            .setMessage("앱을 종료하시겠습니까?")
+            .setPositiveButton("예") { _, _ -> finish() }
+            .setNegativeButton("아니요", null)
+            .show()
+
         backPressedTime = currentTime
     }
+}
 
+class MyApplication : Application() {
+    override fun onCreate() {
+        super.onCreate()
+        FirebaseApp.initializeApp(this)
+    }
 }

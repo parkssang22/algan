@@ -13,18 +13,17 @@ class UserService {
     }
 
     fun registerUser(
-        id: String,
         username: String,
         password: String,
         role: String,
         phone: String,
         email: String,
-        companyName: String?,
+        companyName : String,
         invitationCode: String
     ) {
         try {
             if (validateInvitationCode(invitationCode)) {
-                val newUser = User(id, username, password, role, phone, email, companyName)
+                val newUser = User(username, password, role, phone, email, companyName)
                 users.add(newUser)
                 invitationCodes.find { it.code == invitationCode }?.isUsed = true
             }

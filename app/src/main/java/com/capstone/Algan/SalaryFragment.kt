@@ -57,14 +57,14 @@ class SalaryFragment : Fragment() {
 
     private fun getUser(): User {
         // 로그인된 사용자 정보를 가져오도록 수정
-        return User(id = 1, username = "근로자1", password = "password123", role = "근로자", phone = "011-1234-5678", email = "a2@example.com")
+        return User(uid = "1", username = "근로자1", role = "근로자", phone = "011-1234-5678", email = "a2@example.com", companyName = "kkk")
     }
 
     // 예시로 근로자 목록을 가져오는 함수 ++ DB연동으로 수정
     private fun getEmployees(): List<User> {
         return listOf(
-            User(id = 2, username = "근로자1", password = "password", role = "근로자", phone = "010-1234-5678", email = "worker1@example.com"),
-            User(id = 3, username = "근로자2", password = "password", role = "근로자", phone = "010-2345-6789", email = "worker2@example.com")
+            User(uid = "2", username = "근로자1", role = "근로자", phone = "010-1234-5678", email = "worker1@example.com", companyName = "kk1"),
+            User(uid = "3", username = "근로자2", role = "근로자", phone = "010-2345-6789", email = "worker2@example.com", companyName = "kk2")
         )
     }
 }

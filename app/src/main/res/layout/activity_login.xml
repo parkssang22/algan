@@ -73,7 +73,7 @@
 
     <Button
         android:id="@+id/savebtn"
-        android:text="저장하기"
+        android:text="비밀번호 찾기"
         android:layout_margin="20dp"
         android:layout_width="match_parent"
         android:layout_height="60dp"

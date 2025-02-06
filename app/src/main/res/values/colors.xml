@@ -10,5 +10,10 @@
     <color name="colorPrimary">#6200EE</color>
     <color name="colorPrimaryVariant">#3700B3</color>
     <color name="colorAccent">#03DAC5</color>
+    <color name="teal_700">#018786</color>
 
+    <color name="header_background_color">#FF6200EE</color>
+    <color name="header_text_color">#FFFFFF</color>
+    <color name="selected_day_background">#FF03DAC5</color>
+    <color name="selected_day_text">#FF6200EE</color>
 </resources>
