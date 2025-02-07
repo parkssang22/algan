@@ -86,16 +86,7 @@
                 android:padding="12dp"
                 android:textColor="@color/primary_text" />
 
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/companyNameEditText"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
-                android:hint="회사 이름"
-                android:textColorHint="@color/secondary_text"
-                android:background="@drawable/edittext_background"
-                android:padding="12dp"
-                android:textColor="@color/primary_text" />
+
         </LinearLayout>
     </ScrollView>
 
@@ -109,20 +100,48 @@
         android:layout_marginBottom="16dp">
 
         <RadioButton
-            android:id="@+id/employer"
+            android:id="@+id/employerRadioButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="사업주"
             android:buttonTint="@color/primary_color" />
 
         <RadioButton
-            android:id="@+id/employee"
+            android:id="@+id/employeeRadioButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="고용인"
             android:buttonTint="@color/primary_color"
             android:layout_marginStart="16dp" />
     </RadioGroup>
+
+    <EditText
+        android:id="@+id/companyNameEditText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        android:hint="회사 이름"
+        android:textColorHint="@color/secondary_text"
+        android:background="@drawable/edittext_background"
+        android:padding="12dp"
+        android:textColor="@color/primary_text" />
+
+    <EditText
+        android:id="@+id/companyCodeEditText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="회사 코드"
+        android:visibility="gone" /> <!-- 기본적으로 숨김 -->
+
+
+    <!-- 생성된 회사 코드 표시용 TextView -->
+    <TextView
+        android:id="@+id/generatedCompanyCodeTextView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        android:textSize="16sp"
+        android:textColor="@android:color/holo_blue_dark" />
 
     <Button
         android:id="@+id/signupButton"

@@ -9,11 +9,12 @@ class UserController(private val userService: UserService) {
         phone: String,
         email: String,
         companyName : String,
+        companyCode: String,
         invitationCode: String
     ) {
         try {
             // 사용자 등록 처리
-            userService.registerUser(uid, password, role, phone, email, companyName, invitationCode)
+            userService.registerUser(uid, password, role, phone, email, companyName, companyCode, invitationCode)
             println("User registered successfully!")
         } catch (e: Exception) {
             println("Error: ${e.message}")

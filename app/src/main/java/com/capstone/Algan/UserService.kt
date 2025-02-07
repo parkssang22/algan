@@ -1,6 +1,6 @@
 package com.capstone.Algan
 class UserService {
-    private val users = mutableListOf<User>()
+    private val users = mutableListOf<Employee>()
     private val invitationCodes = mutableListOf<InvitationCode>()
 
     fun validateInvitationCode(code: String): Boolean {
@@ -19,11 +19,12 @@ class UserService {
         phone: String,
         email: String,
         companyName : String,
+        companyCode : String,
         invitationCode: String
     ) {
         try {
             if (validateInvitationCode(invitationCode)) {
-                val newUser = User(username, password, role, phone, email, companyName)
+                val newUser = Employee(username, password, role, phone, email, companyName, companyCode)
                 users.add(newUser)
                 invitationCodes.find { it.code == invitationCode }?.isUsed = true
             }

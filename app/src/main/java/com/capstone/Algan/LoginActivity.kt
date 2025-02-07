@@ -34,9 +34,9 @@ class LoginActivity : AppCompatActivity() {
 
         val loginButton = findViewById<Button>(R.id.login_button)
         loginButton.setOnClickListener {
-            val usernameField = findViewById<EditText>(R.id.username)
+            val EmailField = findViewById<EditText>(R.id.Email)
             val passwordField = findViewById<EditText>(R.id.password)
-            auth.signInWithEmailAndPassword(usernameField.text.toString(), passwordField.text.toString())
+            auth.signInWithEmailAndPassword(EmailField.text.toString(), passwordField.text.toString())
                 .addOnCompleteListener(this) { task ->
                     if (task.isSuccessful) {
                         // Sign in success, update UI with the signed-in user's information
