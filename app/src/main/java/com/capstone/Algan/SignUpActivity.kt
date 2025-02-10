@@ -101,7 +101,7 @@ class SignUpActivity : AppCompatActivity() {
                     Toast.makeText(this, "회사 이름을 입력하세요.", Toast.LENGTH_SHORT).show()
                     return@setOnClickListener
                 }
-                val companyCodeWithSuffix = generatedCompanyCodeTextView.text.toString()
+                val companyCodeWithSuffix = generatedCompanyCodeTextView.text.toString().replace("회사 코드: ", "")
                 signUpAsBusinessOwner(username, password, email, phone, companyName, companyCodeWithSuffix)
             } else if (role == "근로자") {
                 if (companyCode.isEmpty()) {
@@ -129,7 +129,7 @@ class SignUpActivity : AppCompatActivity() {
                     database.reference.child("companies").child(companyCode).child("owner")
                         .setValue(user)
                         .addOnSuccessListener {
-                            Toast.makeText(this, "사업주 회원가입 성공! 회사 코드: $companyCode", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(this, "$companyCode", Toast.LENGTH_SHORT).show()
                             finish()
                         }
                         .addOnFailureListener { e ->

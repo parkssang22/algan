@@ -33,7 +33,7 @@
             android:visibility="gone" />
     </RelativeLayout>
 
-    <!-- 나의 대타 요청, 나의 대타 수락, 대타 신청 버튼을 한 줄에 배치 -->
+    <!-- 나의 대타 요청, 나의 대타 수락, 대타 신청 버튼 -->
     <LinearLayout
         android:orientation="horizontal"
         android:layout_width="match_parent"
