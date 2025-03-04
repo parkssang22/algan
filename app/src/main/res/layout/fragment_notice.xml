@@ -2,46 +2,74 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/light_background"
     android:orientation="vertical"
-    android:padding="16dp"
-    android:background="@color/light_background">
+    android:padding="5dp">
 
     <!-- 채팅 메시지 목록 -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerView_messages"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1"
-        android:layout_marginBottom="16dp"/>
+        android:layout_marginBottom="16dp"
+        android:layout_weight="1" />
 
+    <!-- 사진 보내기 전에 미리보기 -->
+    <ImageView
+        android:id="@+id/imageView_preview"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:layout_marginTop="8dp"
+        android:scaleType="centerCrop"
+        android:visibility="gone" />
     <!-- 채팅 입력란 -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center_vertical">
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
 
-        <!-- 메시지 입력란 -->
-        <EditText
-            android:id="@+id/editText_message"
+        <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:hint="메시지를 입력하세요"
-            android:padding="8dp"
-            android:background="@drawable/edittext_background"
-            android:importantForAccessibility="yes"
-            android:contentDescription="메시지 입력란"/>
+            android:layout_weight="5">
+            <!-- 메시지 입력란 -->
+            <EditText
+                android:id="@+id/editText_message"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/edittext_background"
+                android:contentDescription="메시지 입력란"
+                android:hint="메시지를 입력하세요"
+                android:importantForAccessibility="yes"
+                android:padding="8dp" />
+        </LinearLayout>
 
-        <!-- 보내기 버튼 -->
-        <Button
-            android:id="@+id/button_send"
-            android:layout_width="wrap_content"
+        <LinearLayout
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:text="보내기"
-            android:layout_marginStart="8dp"
-            android:textColor="@color/pastel_blue"
-            android:importantForAccessibility="yes"
-            android:contentDescription="메시지 보내기 버튼"/>
+            android:layout_weight="1">
+            <!-- 보내기 버튼 -->
+            <android.widget.Button
+                android:id="@+id/button_send"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="40dp"
+                android:layout_margin="5dp"
+                android:background="@drawable/baseline_send_24"
+                android:contentDescription="보내기"
+                android:importantForAccessibility="yes" />
+            <!-- 사진 버튼 -->
+            <android.widget.Button
+                android:id="@+id/button_select_image"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="40dp"
+                android:layout_marginTop="5dp"
+                android:layout_marginBottom="5dp"
+                android:layout_marginRight="5dp"
+                android:background="@drawable/baseline_photo_camera_back_24"
+                android:padding="8dp" />
+        </LinearLayout>
     </LinearLayout>
 </LinearLayout>

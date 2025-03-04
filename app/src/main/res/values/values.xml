@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="gcm_defaultSenderId" translatable="false">409430701949</string>
+    <string name="google_api_key" translatable="false">AIzaSyBYJ4Raj_Y-i9AjsZ_LIRJN5Hyngp3dVAU</string>
+    <string name="google_app_id" translatable="false">1:409430701949:android:68d275bea95a3259fd3e14</string>
+    <string name="google_crash_reporting_api_key" translatable="false">AIzaSyBYJ4Raj_Y-i9AjsZ_LIRJN5Hyngp3dVAU</string>
+    <string name="google_storage_bucket" translatable="false">algan23.firebasestorage.app</string>
+    <string name="project_id" translatable="false">algan23</string>
+</resources>

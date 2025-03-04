@@ -5,7 +5,6 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".MainActivity">
-
     <!-- 상단 툴바 -->
     <androidx.appcompat.widget.Toolbar
         android:id="@+id/toolbar"
@@ -17,72 +16,15 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:menu="@menu/menu_top_nav" />
-
     <!-- 표시될 화면들 -->
     <FrameLayout
         android:id="@+id/main_container"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         app:layout_constraintBottom_toTopOf="@+id/bottom_navigation_view"
-        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintEnd_toEndOf="@+id/bottom_navigation_view"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
-
-        <!-- 회원가입 관련 UI 요소들 -->
-        <EditText
-            android:id="@+id/emailEditText"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Email" />
-
-        <EditText
-            android:id="@+id/passwordEditText"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Password"
-            android:inputType="textPassword" />
-
-        <EditText
-            android:id="@+id/idField"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="ID" />
-
-        <EditText
-            android:id="@+id/usernameField"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Username" />
-
-        <EditText
-            android:id="@+id/phoneField"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Phone Number" />
-
-        <RadioGroup
-            android:id="@+id/roleGroup"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content">
-            <RadioButton
-                android:id="@+id/userRole"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="User" />
-            <RadioButton
-                android:id="@+id/adminRole"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Admin" />
-        </RadioGroup>
-
-        <Button
-            android:id="@+id/signupButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Sign Up" />
-    </FrameLayout>
-
+        app:layout_constraintTop_toTopOf="parent"/>
     <!-- 하단 툴바 -->
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottom_navigation_view"

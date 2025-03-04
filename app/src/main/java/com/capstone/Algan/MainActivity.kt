@@ -1,13 +1,17 @@
 package com.capstone.Algan
 
+import ChecklistFragment
+import android.app.Application
 import android.content.Intent
 import android.os.Bundle
-import android.widget.Toast
+import android.view.WindowInsets
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import com.capstone.Algan.fragments.NoticeBoardFragment
 import com.google.android.material.bottomnavigation.BottomNavigationView
+import com.google.firebase.FirebaseApp
+
 
 class MainActivity : AppCompatActivity() {
 
@@ -16,18 +20,32 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        // ActionBar 숨기기
-        supportActionBar?.hide()
+
 // 툴바 설정
         val toolbar = findViewById<androidx.appcompat.widget.Toolbar>(R.id.toolbar)
+        // 스플래시 화면을 비활성화하려면 아래 코드 추가
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
+            // Android 12 이상에서는 SplashScreen을 수동으로 비활성화
+            window.insetsController?.hide(WindowInsets.Type.statusBars()) // 상태바 숨기기
+        }
 
         // 툴바 메뉴 클릭 이벤트
         toolbar.setOnMenuItemClickListener { item ->
             when (item.itemId) {
+                // 전체 근로자 화면으로 이동
+                R.id.menu_Allemployee -> {
+                    replaceFragment(AllemployeeFragment())
+                    true
+                }
                 R.id.menu_info -> {
                     // 내정보 화면으로 이동
                     val intent = Intent(this, InfoActivity::class.java)
-                    intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+                    startActivity(intent)
+                    true
+                }
+                R.id.menu_mypage -> {
+                    // 마이페이지 화면으로 이동
+                    val intent = Intent(this, MyPageActivity::class.java)
                     startActivity(intent)
                     true
                 }
@@ -86,5 +104,11 @@ class MainActivity : AppCompatActivity() {
             show()
         }
         backPressedTime = currentTime
+    }
+}
+class MyApplication : Application() {
+    override fun onCreate() {
+        super.onCreate()
+        FirebaseApp.initializeApp(this)
     }
 }

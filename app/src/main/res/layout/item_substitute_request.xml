@@ -9,35 +9,56 @@
     <LinearLayout
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
+        android:orientation="horizontal"
+        android:layout_gravity="center_vertical"
         android:layout_weight="1">
-
-        <!-- 대타 신청 날짜 및 시간 표시 -->
-        <TextView
-            android:id="@+id/textViewSubstituteTime"
+        <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="2025-01-20 09:00 ~ 10:00"
-            android:textSize="11sp"
-            android:textColor="@android:color/black" />
-
-        <!-- 요청자 이름 -->
-        <TextView
-            android:id="@+id/textViewRequesterName"
+            android:layout_marginRight="10dp"
+            android:layout_gravity="left"
+            android:orientation="vertical">
+            <!-- 대타 신청 날짜 표시 -->
+            <TextView
+                android:id="@+id/textViewSubstituteDate"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="2025-01-20"
+                android:textSize="14sp"
+                android:textColor="@android:color/darker_gray" />
+            <!-- 대타 신청 시간 표시 -->
+            <TextView
+                android:id="@+id/textViewSubstituteTime"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="09:00 ~ 10:00"
+                android:textSize="14sp"
+                android:textColor="@android:color/darker_gray" />
+        </LinearLayout>
+        <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="요청자: 김영희"
-            android:textSize="9sp"
-            android:textColor="@android:color/black" />
+            android:orientation="vertical"
+            android:layout_gravity="left">
+            <!-- 요청자 이름 -->
+            <TextView
+                android:id="@+id/textViewRequesterName"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="요청자: 김영희"
+                android:textSize="14sp"
+                android:textColor="@android:color/black" />
 
-        <!-- 수락자 이름 (수락된 경우 표시됨) -->
-        <TextView
-            android:id="@+id/textViewAcceptedBy"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="수락자: 김철수"
-            android:textSize="9sp"
-            android:textColor="@android:color/black" />
+            <!-- 수락자 이름 (수락된 경우 표시됨) -->
+            <TextView
+                android:id="@+id/textViewAcceptedBy"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="수락자: 김철수"
+                android:textSize="14sp"
+                android:textColor="@android:color/black" />
+        </LinearLayout>
+
     </LinearLayout>
 
     <!-- 버튼들: 수락 및 승인 -->
@@ -48,17 +69,19 @@
         android:gravity="center">
 
         <!-- 수락 버튼 -->
-        <Button
+        <android.widget.Button
             android:id="@+id/buttonAccept"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="수락"
             android:textSize="9sp"
             android:minWidth="55dp"
-            android:minHeight="25dp"/>
+            android:minHeight="25dp"
+            android:elevation="4dp"
+            android:stateListAnimator="@null"/>
 
         <!-- 승인 버튼 -->
-        <Button
+        <android.widget.Button
             android:id="@+id/buttonApprove"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"

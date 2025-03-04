@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources><style name="CustomDatePickerTheme" parent="Theme.MaterialComponents.DayNight">
+    <!-- 주요 색상 설정 -->
+    <item name="colorPrimary">@color/primary_color</item>
+    <item name="colorPrimaryVariant">@color/primary_color</item>
+    <item name="colorOnPrimary">@color/white</item>
+
+</style>
+
+</resources>

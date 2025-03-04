@@ -64,7 +64,7 @@ class SignUpActivity : AppCompatActivity() {
             override fun afterTextChanged(s: Editable?) {
                 if (s != null && s.length >= 3) {
                     val companyCode = generateCompanyCode(s.toString())
-                    generatedCompanyCodeTextView.text = "회사 코드: $companyCode"
+                    generatedCompanyCodeTextView.text = "$companyCode"
                 } else {
                     generatedCompanyCodeTextView.text = ""
                 }
@@ -108,7 +108,7 @@ class SignUpActivity : AppCompatActivity() {
                     Toast.makeText(this, "회사 코드를 입력하세요.", Toast.LENGTH_SHORT).show()
                     return@setOnClickListener
                 }
-                signUpAsEmployee(username, password, email, phone, companyCode)
+                signUpAsEmployee(username, password, email, phone, companyCode, companyName)
             }
         }
     }
@@ -141,14 +141,14 @@ class SignUpActivity : AppCompatActivity() {
             }
     }
 
-    private fun signUpAsEmployee(username: String, password: String, email: String, phone: String, companyCode: String) {
+    private fun signUpAsEmployee(username: String, password: String, email: String, phone: String, companyCode: String, companyName: String) {
         isCompanyCodeValid(companyCode) { isValid ->
             if (isValid) {
                 auth.createUserWithEmailAndPassword(email, password)
                     .addOnCompleteListener(this) { task ->
                         if (task.isSuccessful) {
                             val userId = auth.currentUser!!.uid
-                            val user = Employee(uid = userId, username = username, phone = phone, email = email, companyCode = companyCode, salary = null, workingHours = null)
+                            val user = Employee(uid = userId, username = username, phone = phone, email = email, companyCode = companyCode, salary = null, companyName = companyName, workingHours = null)
 
                             database.reference.child("companies").child(companyCode).child("employees").child(userId).setValue(user)
                                 .addOnSuccessListener {

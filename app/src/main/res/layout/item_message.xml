@@ -1,0 +1,92 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="10dp"
+    android:background="?android:attr/selectableItemBackground"
+    android:orientation="vertical"
+    android:padding="8dp">
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <!-- 프로필 이미지 -->
+        <ImageView
+            android:id="@+id/btnProfile"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:layout_marginEnd="8dp"
+            android:adjustViewBounds="true"
+            android:background="@color/pastel_blue"
+            android:src="@drawable/baseline_person_2_24" />
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+            <!-- 메시지 작성자 -->
+            <TextView
+                android:id="@+id/tvUsername"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="작성자 이름"
+                android:textColor="#B0B0B0"
+                android:textSize="12sp" />
+            <!-- 메시지 내용 -->
+            <TextView
+                android:id="@+id/tvMessageContent"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="30dp"
+                android:background="@color/light_gray"
+                android:clipToOutline="true"
+                android:elevation="2dp"
+                android:outlineProvider="background"
+                android:padding="5dp"
+                android:text="메시지 내용"
+                android:textSize="16sp" />
+            <!-- 사진 내용 -->
+            <ImageView
+                android:id="@+id/imageViewMessageImage"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:adjustViewBounds="true"
+                android:visibility="gone" />
+        </LinearLayout>
+    </LinearLayout>
+
+
+    <!-- 타임스탬프 및 삭제 버튼 -->
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/tvMessageTimestamp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginRight="10dp"
+            android:text="타임스탬프"
+            android:textColor="#B0B0B0"
+            android:textSize="12sp" />
+
+        <android.widget.Button
+            android:id="@+id/btnDelete"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="0dp"
+            android:background="?android:attr/selectableItemBackground"
+            android:gravity="center"
+            android:minWidth="15dp"
+            android:minHeight="10dp"
+            android:padding="0dp"
+            android:text="삭제x"
+            android:textColor="@android:color/black"
+            android:textSize="14sp" />
+
+
+    </LinearLayout>
+</LinearLayout>

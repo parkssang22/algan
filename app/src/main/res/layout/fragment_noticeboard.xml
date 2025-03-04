@@ -6,7 +6,7 @@
     android:padding="16dp"
     android:background="@color/light_background">
 
-    <!-- 상단 제목과 버튼을 가로로 나열할 LinearLayout -->
+    <!-- 상단 제목과 버튼을 가로로 나열 -->
     <LinearLayout
         android:layout_marginTop="56dp"
         android:layout_width="match_parent"
@@ -56,7 +56,7 @@
         android:id="@+id/frame_container"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_marginTop="20dp"
+        android:layout_marginTop="10dp"
         android:layout_weight="1"/>
 
 </LinearLayout>

@@ -1,0 +1,83 @@
+<!-- item_work_record.xml -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:padding="0dp"
+    android:background="?android:attr/selectableItemBackground">
+
+    <!-- 번호 -->
+    <TextView
+        android:id="@+id/tvNumber"
+        android:layout_width="0dp"
+        android:layout_weight="1"
+        android:layout_height="wrap_content"
+        android:padding="8dp"
+        android:textAlignment="center"
+        android:text="1"
+        android:textSize="14sp" />
+    <!-- 이름 -->
+    <TextView
+        android:id="@+id/tvWorkerName"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="2"
+        android:padding="8dp"
+        android:text="이름"
+        android:textAlignment="center" />
+    <!-- 날짜 -->
+    <TextView
+        android:id="@+id/tvDate"
+        android:layout_width="0dp"
+        android:layout_weight="2"
+        android:layout_height="wrap_content"
+        android:padding="8dp"
+        android:textAlignment="center"
+        android:text="2025년 02월 16일"
+        android:textSize="14sp" />
+
+    <!-- 출근 시간 -->
+    <TextView
+        android:id="@+id/tvClockIn"
+        android:layout_width="0dp"
+        android:layout_weight="2"
+        android:layout_height="wrap_content"
+        android:padding="8dp"
+        android:textAlignment="center"
+        android:text="09:00"
+        android:textSize="14sp" />
+
+    <!-- 퇴근 시간 -->
+    <TextView
+        android:id="@+id/tvClockOut"
+        android:layout_width="0dp"
+        android:layout_weight="2"
+        android:layout_height="wrap_content"
+        android:padding="8dp"
+        android:textAlignment="center"
+        android:text="18:00"
+        android:textSize="14sp" />
+
+    <!-- 기록 시간 -->
+    <TextView
+        android:id="@+id/tvWorkedHours"
+        android:layout_width="0dp"
+        android:layout_weight="2"
+        android:layout_height="wrap_content"
+        android:padding="8dp"
+        android:textAlignment="center"
+        android:text="08:00"
+        android:textSize="14sp" />
+
+    <!-- 인정 근무 시간 -->
+    <TextView
+        android:id="@+id/tvHours"
+        android:layout_width="0dp"
+        android:visibility="gone"
+        android:layout_weight="2"
+        android:layout_height="wrap_content"
+        android:padding="8dp"
+        android:textAlignment="center"
+        android:text="08:00"
+        android:textSize="14sp" />
+</LinearLayout>
