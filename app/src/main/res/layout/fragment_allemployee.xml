@@ -2,11 +2,12 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:layout_marginTop="56dp"
     android:orientation="vertical">
 
-    <!-- RecyclerView -->
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/recyclerView_employees"
+    <!-- 회사코드 같은 유저 전체 -->
+    <ListView
+        android:id="@+id/all_list"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 </LinearLayout>

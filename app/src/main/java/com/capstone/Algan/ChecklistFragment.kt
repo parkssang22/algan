@@ -1,6 +1,7 @@
 import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
 import android.text.TextUtils
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -24,11 +25,14 @@ class ChecklistFragment : Fragment() {
     private val database = FirebaseDatabase.getInstance().reference
 
     // 사업주 여부 확인 변수
-    private val isBusinessOwner = true  // 사업주로 테스트 하기 위한 코드
+    private val isBusinessOwner = true
 
     // 근로자 목록
     private val employeeList = mutableListOf<String>()
     private val employeesByGroup = mutableMapOf<String, List<String>>()
+
+    // 그룹 리스트
+    private val groupList = listOf("전체", "오전", "오후", "야간")
 
     // 로그인한 근로자 정보 (동적으로 설정)
     private var loggedInUser: Employee? = null
@@ -87,18 +91,25 @@ class ChecklistFragment : Fragment() {
                 employeeList.clear()
                 employeesByGroup.clear()
 
+                // 그룹별 근로자 목록 초기화
+                for (group in groupList) {
+                    employeesByGroup[group] = mutableListOf()
+                }
+
                 for (employeeSnapshot in snapshot.children) {
                     val username = employeeSnapshot.child("username").getValue(String::class.java)
-                    val group = employeeSnapshot.child("workingHours").getValue(String::class.java)
+                    val workingHours = employeeSnapshot.child("workingHours").getValue(String::class.java)
 
-                    if (username != null && group != null) {
+                    if (username != null) {
                         employeeList.add(username)
 
-                        // 그룹별 근로자 목록 업데이트
-                        if (!employeesByGroup.containsKey(group)) {
-                            employeesByGroup[group] = mutableListOf()
+                        // 그룹별 근로자 목록에 추가 (하드코딩된 예시)
+                        when (workingHours) {
+                            "오전" -> (employeesByGroup["오전"] as MutableList).add(username)
+                            "오후" -> (employeesByGroup["오후"] as MutableList).add(username)
+                            "야간" -> (employeesByGroup["야간"] as MutableList).add(username)
+                            else -> (employeesByGroup["전체"] as MutableList).add(username)
                         }
-                        (employeesByGroup[group] as MutableList).add(username)
                     }
                 }
 
@@ -117,7 +128,6 @@ class ChecklistFragment : Fragment() {
     }
 
     private fun setupGroupSpinner() {
-        val groupList = listOf("전체", "오전", "오후")
         val spinnerAdapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, groupList)
         spinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         binding.spinnerGroup.adapter = spinnerAdapter
@@ -137,6 +147,8 @@ class ChecklistFragment : Fragment() {
         if (isBusinessOwner) {
             binding.spinnerEmployees.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
                 override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+                    val selectedEmployee = binding.spinnerEmployees.selectedItem?.toString()
+                    loadChecklistsForEmployee(selectedEmployee ?: "")
                     filterChecklistItems()
                 }
 
@@ -145,6 +157,7 @@ class ChecklistFragment : Fragment() {
         } else {
             loggedInUser?.let { employee ->
                 binding.spinnerEmployees.setSelection(employeeList.indexOf(employee.name))
+                loadChecklistsForEmployee(employee.name)
             }
         }
     }
@@ -171,6 +184,7 @@ class ChecklistFragment : Fragment() {
         val selectedGroup = binding.spinnerGroup.selectedItem.toString()
 
         val employeesInGroup = employeesByGroup[selectedGroup] ?: listOf()
+        Log.d(selectedGroup,"1")
 
         checklistItems.forEach { item ->
             item.isVisible = when {
@@ -198,18 +212,46 @@ class ChecklistFragment : Fragment() {
 
         // 체크리스트 항목 생성
         val checklistItem = ChecklistItem(
-            date = SimpleDateFormat("yyyy-MM-dd \nHH:mm", Locale.getDefault()).format(Date()),
+            date = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault()).format(Date()),
             employeeName = selectedEmployee,
             content = itemContent,
             isCompleted = false
         )
 
-        // 체크리스트에 항목 추가
-        checklistItems.add(checklistItem)
-        listViewAdapter.notifyDataSetChanged()
+        // Firebase에 체크리스트 항목 저장
+        val checklistRef = database.child("companies").child("11348407").child("checklists").child(selectedEmployee)
+        checklistRef.push().setValue(checklistItem).addOnCompleteListener { task ->
+            if (task.isSuccessful) {
+                checklistItems.add(checklistItem)
+                listViewAdapter.notifyDataSetChanged()
+                binding.editTextItemContent.text.clear()
+            } else {
+                Toast.makeText(requireContext(), "체크리스트 등록에 실패했습니다.", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
 
-        // 입력 필드 초기화
-        binding.editTextItemContent.text.clear()
+    private fun loadChecklistsForEmployee(employeeName: String) {
+        val checklistRef = database.child("companies").child("11348407").child("checklists").child(employeeName)
+
+        checklistRef.addListenerForSingleValueEvent(object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                checklistItems.clear()
+
+                for (checklistSnapshot in snapshot.children) {
+                    val item = checklistSnapshot.getValue(ChecklistItem::class.java)
+                    if (item != null) {
+                        checklistItems.add(item)
+                    }
+                }
+
+                listViewAdapter.notifyDataSetChanged()
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+                Toast.makeText(requireContext(), "체크리스트를 불러오는 데 실패했습니다.", Toast.LENGTH_SHORT).show()
+            }
+        })
     }
 
     override fun onResume() {
@@ -228,7 +270,6 @@ class ChecklistFragment : Fragment() {
 
     // 그룹 이름에 해당하는 Spinner 위치 반환
     private fun getGroupPosition(group: String): Int {
-        val groupList = listOf("전체", "오전", "오후")
         return groupList.indexOf(group)
     }
 
@@ -327,3 +368,4 @@ class ChecklistFragment : Fragment() {
         button.background = drawable
     }
 }
+

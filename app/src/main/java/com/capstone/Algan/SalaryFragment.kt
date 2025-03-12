@@ -41,31 +41,30 @@ class SalaryFragment : Fragment() {
     }
 
     private fun getUserInfo() {
-        // 로그인된 사용자 정보 가져오기
-        val uid = "1" // 예시로 UID를 지정, 실제로는 로그인된 사용자의 UID를 사용해야 함
+        val uid = "1" // 실제 로그인된 사용자의 UID 사용
         database.child("employees").child(uid).addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
                 if (snapshot.exists()) {
                     user = snapshot.getValue(Employee::class.java)!!
-                    binding.salaryAmount.text = "실 지급액: ${user.salary ?: "정보 없음"}"
-                    binding.totalWorkHours.text = "총 근무시간: ${user.workingHours ?: "정보 없음"}"
 
-                    // 근로자가 속한 회사의 근로자 목록 가져오기
+                    // 사용자 정보가 있으면 근무 시간 정보 가져오기
+                    getWorkTime(uid)
+
+                    // 회사의 직원 목록 가져오기
                     getEmployees(user.companyCode)
                 } else {
-                    // 데이터가 존재하지 않을 경우
                     binding.salaryAmount.text = "급여 정보 없음"
                     binding.totalWorkHours.text = "근무시간 정보 없음"
                 }
             }
 
             override fun onCancelled(error: DatabaseError) {
-                // 데이터 가져오기 실패
                 binding.salaryAmount.text = "급여 정보 로드 실패"
                 binding.totalWorkHours.text = "근무시간 정보 로드 실패"
             }
         })
     }
+
 
 
     private fun getEmployees(companyCode: String) {
@@ -89,4 +88,36 @@ class SalaryFragment : Fragment() {
             }
         })
     }
+
+    private fun getWorkTime(uid: String) {
+        database.child("worktimes").orderByChild("uid").equalTo(uid)
+            .addListenerForSingleValueEvent(object : ValueEventListener {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    var totalPay = 0.0
+                    var totalWorkHours = 0.0
+
+                    for (childSnapshot in snapshot.children) {
+                        val workTime = childSnapshot.getValue(WorkTime::class.java)
+                        if (workTime != null) {
+                            // recordTime (총 근무시간)이 "5.5" 같은 문자열 형태라면 변환 필요
+                            val workHours = workTime.workedHours.toDoubleOrNull() ?: 0.0
+                            val hourlyRate = workTime.hourlyRate.toDoubleOrNull() ?: 0.0
+
+                            totalWorkHours += workHours
+                            totalPay += workHours * hourlyRate
+                        }
+                    }
+
+                    // UI 업데이트
+                    binding.totalWorkHours.text = "총 근무시간: $totalWorkHours 시간"
+                    binding.salaryAmount.text = "실 지급액: ${totalPay.toInt()} 원"
+                }
+
+                override fun onCancelled(error: DatabaseError) {
+                    binding.salaryAmount.text = "급여 정보 로드 실패"
+                    binding.totalWorkHours.text = "근무시간 정보 로드 실패"
+                }
+            })
+    }
+
 }

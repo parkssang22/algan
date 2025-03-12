@@ -30,15 +30,15 @@
             android:layout_height="wrap_content"
             android:text="근로자 이름"
             android:textSize="16sp"
-            android:textColor="@android:color/black"/>
+            android:textColor="@color/black"/>
 
         <TextView
             android:id="@+id/tvRole"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="직급"
+            android:text="역할"
             android:textSize="14sp"
-            android:textColor="@android:color/darker_gray"/>
+            android:textColor="@color/black"/>
     </LinearLayout>
 
 </LinearLayout>

@@ -2,58 +2,87 @@ package com.capstone.Algan
 
 import android.app.DatePickerDialog
 import android.os.Bundle
+import android.util.Log // 로그를 위해 추가
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.AdapterView
-import android.widget.ArrayAdapter
-import android.widget.Button
-import android.widget.LinearLayout
-import android.widget.Spinner
-import android.widget.TextView
+import android.widget.*
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.capstone.Algan.databinding.FragmentWorkrecordBinding
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.database.*
 import java.text.SimpleDateFormat
 import java.util.*
 
-class WorkRecordFragment : Fragment(R.layout.fragment_workrecord) {
+class WorkRecordFragment : Fragment() {
 
+    // UI 요소 선언
     private lateinit var btnClockInOut: Button
-    private lateinit var tvDate: TextView
     private lateinit var tvClockIn: TextView
     private lateinit var tvClockOut: TextView
     private lateinit var tvStartDate: TextView
     private lateinit var tvEndDate: TextView
     private lateinit var recyclerView: RecyclerView
-    private lateinit var spinnerWorker: Spinner // 근로자 선택 스피너
-    private lateinit var workerSelectionLayout: LinearLayout // 근로자 선택 레이아웃
-    private lateinit var lntoprecord: LinearLayout // 출퇴근 버튼 레이아웃
+    private lateinit var spinnerWorker: Spinner
+    private lateinit var workerSelectionLayout: LinearLayout
+    private lateinit var lntoprecord: LinearLayout
+    private lateinit var tvDate: TextView // 오늘 날짜 표시를 위한 텍스트뷰
 
+    // Firebase 관련 변수
+    private lateinit var database: DatabaseReference
+    private lateinit var auth: FirebaseAuth
+
+    // 출퇴근 관련 상태 변수
     private var isClockedIn = false
     private var clockInTime: String? = null
     private var clockOutTime: String? = null
+    private var uid: String? = null
+    private var username: String? = null
+    private var hourlyRate: String? = null
+    private var companyCode: String? = null
+    private var companyName: String? = null
+    private var isEmployer: Boolean = false
 
+    // RecyclerView 관련 변수
     private lateinit var recordAdapter: RecordAdapter
-    private val records = mutableListOf<AttendanceRecordWithTime>()
+    private val records = mutableListOf<WorkTime>()
 
-    // 로그인된 근로자 이름
-    private var loggedInWorkerName: String = "근로자1"
+    // 근로자 리스트 (사업주용)
+    private val workerList = mutableListOf<Employee>() // Employee 데이터 클래스 사용
+    private lateinit var selectedWorkerUid: String
 
-    private var isEmployer = false // 근로자 화면 테스트
-    //private var isEmployer = true // 사업주 화면 테스트
+    // 현재 로그인한 사용자 데이터 클래스
+    private var currentUserData: Any? = null
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
+
     ): View? {
         val view = inflater.inflate(R.layout.fragment_workrecord, container, false)
 
-        // 뷰 초기화
+        initView(view)
+        setupRecyclerView()
+        fetchUserData() // 사용자 데이터 가져오기
+
+        btnClockInOut.setOnClickListener {
+
+            val currentDate = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+
+            // 매번 클릭할 때마다 최신 시간 확보
+            val latestClockInOrOutTime = getCurrentTime()
+
+            handleClockInOut() // handleClockInOut 메서드 수정 필요
+        }
+
+        return view
+    }
+
+    // UI 요소 초기화
+    private fun initView(view: View) {
         btnClockInOut = view.findViewById(R.id.btnClockInOut)
-        tvDate = view.findViewById(R.id.tvDate)
         tvClockIn = view.findViewById(R.id.tvClockIn)
         tvClockOut = view.findViewById(R.id.tvClockOut)
         tvStartDate = view.findViewById(R.id.tvStartDate)
@@ -62,227 +91,318 @@ class WorkRecordFragment : Fragment(R.layout.fragment_workrecord) {
         spinnerWorker = view.findViewById(R.id.spinnerWorker)
         lntoprecord = view.findViewById(R.id.lntoprecord)
         workerSelectionLayout = view.findViewById(R.id.workerSelectionLayout)
+        tvDate = view.findViewById(R.id.tvDate) // 오늘 날짜 텍스트뷰 초기화
+        database = FirebaseDatabase.getInstance().reference
+        auth = FirebaseAuth.getInstance()
+    }
 
-        // RecyclerView 설정
-        recordAdapter = RecordAdapter(records)
-        recyclerView.layoutManager = LinearLayoutManager(requireContext())
-        recyclerView.adapter = recordAdapter
+    // 사용자 데이터 가져오기
+    private fun fetchUserData() {
+        val currentUser = auth.currentUser ?: return // 로그인한 유저 확인
+        uid = currentUser.uid // UID 가져오기
 
-        // 현재 날짜 표시
-        val currentDate = SimpleDateFormat("yyyy년 MM월 dd일", Locale.KOREA).format(Date())
-        tvDate.text = currentDate
+        // companies 노드에서 현재 유저의 UID를 기반으로 사업주 또는 근로자 정보 검색
+        database.child("companies").addListenerForSingleValueEvent(object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                var userFound = false
+                for (companySnapshot in snapshot.children) {
+                    // 사업주 확인
+                    val ownerSnapshot = companySnapshot.child("owner")
+                    val owner = ownerSnapshot.getValue(BusinessOwner::class.java)
+                    if (owner != null && owner.uid == uid) {
+                        // 현재 로그인한 사용자가 사업주인 경우
+                        username = owner.username
+                        companyCode = owner.companyCode
+                        companyName = owner.companyName
+                        isEmployer = true
+                        userFound = true
+                        setupUIForRole()
+                        fetchWorkerList() // 사업주인 경우 근로자 리스트 가져오기
+                        break
+                    }
 
-        // 하드코딩된 기록 추가
-        records.add(AttendanceRecordWithTime(1, "2025년 02월 23일", "09:00:00", "18:00:00", "09:00", 1, "근로자1"))
-        records.add(AttendanceRecordWithTime(2, "2025년 02월 23일", "08:30:00", "17:30:00", "09:00", 2, "근로자2"))
-        records.add(AttendanceRecordWithTime(3, "2025년 02월 22일", "09:00:00", "18:00:00", "09:00", 3, "근로자3"))
+                    // 근로자 확인
+                    val employeesSnapshot = companySnapshot.child("employees")
+                    for (employeeSnapshot in employeesSnapshot.children) {
+                        val employee = employeeSnapshot.getValue(Employee::class.java)
+                        if (employee != null && employee.uid == uid) {
+                            // 현재 로그인한 사용자가 근로자인 경우
+                            username = employee.username
+                            companyCode = employee.companyCode
+                            companyName = employee.companyName
+                            isEmployer = false
+                            userFound = true
+                            setupUIForRole()
+                            fetchRecords() // 근로자 본인의 기록 가져오기
+                            break
+                        }
+                    }
 
-        val workerList = listOf("전체", "근로자1", "근로자2", "근로자3") // 데이터 예시
-        val adapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, workerList)
+                    if (userFound) break
+                }
+
+                if (!userFound) {
+                    Toast.makeText(requireContext(), "사용자 정보를 찾을 수 없습니다.", Toast.LENGTH_SHORT)
+                        .show()
+                }
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+                Toast.makeText(requireContext(), "데이터베이스 오류: ${error.message}", Toast.LENGTH_SHORT)
+                    .show()
+            }
+        })
+    }
+
+    // 근로자 리스트 가져오기 (사업주인 경우)
+    private fun fetchWorkerList() {
+        if (companyCode == null) return
+
+        database.child("companies").child(companyCode!!)
+            .child("employees") // companies/{companyCode}/employees 경로 접근
+            .addListenerForSingleValueEvent(object : ValueEventListener {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    workerList.clear()
+                    for (workerSnapshot in snapshot.children) {
+                        val workerRole = workerSnapshot.child("role").getValue(String::class.java)
+                        if (workerRole == "근로자") { // 역할이 '근로자'인 경우만 추가합니다.
+                            val worker = workerSnapshot.getValue(Employee::class.java)
+                            if (worker != null) {
+                                workerList.add(worker) // 리스트에 추가합니다.
+                            }
+                        }
+                    }
+                    setupWorkerSpinner() // 스피너 설정 호출.
+                }
+
+                override fun onCancelled(error: DatabaseError) {
+                    Toast.makeText(requireContext(), "근로자 목록을 불러오는데 실패했습니다.", Toast.LENGTH_SHORT)
+                        .show()
+                }
+            })
+    }
+
+    // 근로자 선택 스피너 설정
+    private fun setupWorkerSpinner() {
+        val workerNames = workerList.map { it.username }
+        val adapter =
+            ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, workerNames)
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         spinnerWorker.adapter = adapter
 
-        // 출근/퇴근 버튼 클릭 이벤트 설정
-        btnClockInOut.setOnClickListener {
-            val selectedDate = SimpleDateFormat("yyyy년 MM월 dd일", Locale.KOREA).format(Date())
-            if (isClockedIn) {
-                clockOutTime = getCurrentTime()
-                tvClockOut.text = "퇴근 시간: $clockOutTime"
-                saveAttendance(selectedDate, clockInTime ?: "미등록", clockOutTime ?: "미등록")
-                btnClockInOut.text = "출근"
-                btnClockInOut.backgroundTintList = ContextCompat.getColorStateList(requireContext(), android.R.color.holo_green_light)
-                isClockedIn = false
-            } else {
-                clockInTime = getCurrentTime()
-                tvClockIn.text = "출근 시간: $clockInTime"
-                clockOutTime = null
-                tvClockOut.text = "퇴근 시간: 미등록"
-                btnClockInOut.text = "퇴근"
-                btnClockInOut.backgroundTintList = ContextCompat.getColorStateList(requireContext(), android.R.color.holo_red_light)
-                isClockedIn = true
+        spinnerWorker.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(
+                parent: AdapterView<*>, view: View?, position: Int, id: Long
+            ) {
+                selectedWorkerUid = workerList[position].uid
+                fetchRecords() // 선택된 근로자의 기록을 가져옵니다.
             }
+
+            override fun onNothingSelected(parent: AdapterView<*>) {}
         }
 
-        // 날짜 선택을 위한 DatePickerDialog 설정
+        // 기본 선택 설정
+        if (workerList.isNotEmpty()) {
+            selectedWorkerUid = workerList[0].uid
+            fetchRecords()
+        }
+    }
+
+    // 역할에 따른 UI 변경
+    private fun setupUIForRole() {
+        if (isEmployer) {
+            // 사업주인 경우
+            spinnerWorker.visibility = View.VISIBLE
+            lntoprecord.visibility = View.GONE
+            workerSelectionLayout.visibility = View.VISIBLE
+            btnClockInOut.visibility = View.GONE
+            tvClockIn.visibility = View.GONE
+            tvClockOut.visibility = View.GONE
+        } else {
+            // 근로자인 경우
+            spinnerWorker.visibility = View.GONE
+            workerSelectionLayout.visibility = View.GONE
+            lntoprecord.visibility = View.VISIBLE
+            btnClockInOut.visibility = View.VISIBLE
+            tvClockIn.visibility = View.VISIBLE
+            tvClockOut.visibility = View.VISIBLE
+        }
+
+        setupDatePickers()
+    }
+
+    // 날짜 선택기 설정
+    private fun setupDatePickers() {
+        val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+        val currentDate = dateFormat.format(Date())
+        tvStartDate.text = currentDate
+        tvEndDate.text = currentDate
+        tvDate.text = "오늘 날짜: $currentDate" // 오늘 날짜 표시
+
         tvStartDate.setOnClickListener {
-            showDatePicker { date ->
-                tvStartDate.text = date
-                filterRecordsByDate()
+            showDatePicker { selectedDate ->
+                tvStartDate.text = selectedDate
+                fetchRecords()
             }
         }
 
         tvEndDate.setOnClickListener {
-            showDatePicker { date ->
-                tvEndDate.text = date
-                filterRecordsByDate()
+            showDatePicker { selectedDate ->
+                tvEndDate.text = selectedDate
+                fetchRecords()
             }
         }
-
-        // 사업주일 때만 근로자 선택 스피너 보이기
-        if (isEmployer) {
-            spinnerWorker.visibility = View.VISIBLE
-            lntoprecord.visibility = View.GONE // 출퇴근 버튼 안보이게
-            workerSelectionLayout.visibility = View.VISIBLE
-        } else {
-            spinnerWorker.visibility = View.GONE
-            workerSelectionLayout.visibility = View.GONE
-            lntoprecord.visibility = View.VISIBLE
-        }
-
-        // 근로자 선택 변경 시 필터링
-        spinnerWorker.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-            override fun onItemSelected(parentView: AdapterView<*>, view: View?, position: Int, id: Long) {
-                filterRecordsByWorker(position)
-            }
-
-            override fun onNothingSelected(parentView: AdapterView<*>) {}
-        }
-
-        return view
     }
 
-    // 사업주일 때 근로자 선택에 맞는 출퇴근 기록 필터링
-    private fun filterRecordsByWorker(workerIndex: Int) {
-        val filteredRecords = if (isEmployer) {
-            // 사업주라면 "전체"를 포함한 모든 근로자 기록을 보여주기
-            records.filter { it.workerIndex == workerIndex || workerIndex == 0 }
-        } else {
-            // 근로자라면 본인만 보이도록 필터링
-            records.filter { it.workerName == loggedInWorkerName }
-        }
-
-        recordAdapter.updateRecords(filteredRecords)
-    }
-
-    // 날짜 범위에 맞춰 기록 필터링
-    private fun filterRecordsByDate() {
-        val startDate = tvStartDate.text.toString()
-        val endDate = tvEndDate.text.toString()
-
-        val filteredRecords = records.filter {
-            val recordDate = it.date
-            (startDate.isEmpty() || recordDate >= startDate) && (endDate.isEmpty() || recordDate <= endDate)
-        }
-
-        recordAdapter.updateRecords(filteredRecords)
-    }
-
-    // 출퇴근 기록 저장
-    private fun saveAttendance(date: String, clockIn: String, clockOut: String) {
-        val workerName = if (isEmployer) {
-            // 사업주일 때는 스피너에서 선택된 근로자의 이름을 사용
-            spinnerWorker.selectedItem.toString()
-        } else {
-            // 근로자일 때는 로그인된 사용자의 이름을 사용
-            loggedInWorkerName // 로그인된 근로자의 이름 사용
-        }
-
-        val workedHours = calculateWorkedHours(clockIn, clockOut)
-        val newRecord = AttendanceRecordWithTime(
-            id = records.size + 1,
-            date = date,
-            clockIn = clockIn,
-            clockOut = clockOut,
-            workedHours = workedHours,
-            workerIndex = null, // 필요 없다면 null
-            workerName = workerName // 선택된 근로자 이름 또는 로그인된 사용자 이름
-        )
-
-        records.add(newRecord)
-        recordAdapter.notifyItemInserted(records.size - 1)
-    }
-
-    // 현재 시간 얻기
-    private fun getCurrentTime(): String {
-        val sdf = SimpleDateFormat("HH:mm:ss", Locale.KOREA)
-        return sdf.format(Date())
-    }
-
-    // 날짜 선택을 위한 DatePickerDialog 표시
+    // 날짜 선택 다이얼로그 함수 추가
     private fun showDatePicker(onDateSelected: (String) -> Unit) {
         val calendar = Calendar.getInstance()
         val year = calendar.get(Calendar.YEAR)
         val month = calendar.get(Calendar.MONTH)
         val day = calendar.get(Calendar.DAY_OF_MONTH)
 
-        val datePickerDialog = DatePickerDialog(requireContext(), { _, selectedYear, selectedMonth, selectedDay ->
-            val formattedDate = String.format("%04d년 %02d월 %02d일", selectedYear, selectedMonth + 1, selectedDay)
-            onDateSelected(formattedDate)
-        }, year, month, day)
+        val datePickerDialog =
+            DatePickerDialog(requireContext(), { _, selectedYear, selectedMonth, selectedDay ->
+                val selectedDate =
+                    String.format("%04d-%02d-%02d", selectedYear, selectedMonth + 1, selectedDay)
+                onDateSelected(selectedDate)
+            }, year, month, day)
 
         datePickerDialog.show()
     }
 
-    // 근무 시간을 계산하는 함수
-    private fun calculateWorkedHours(clockIn: String, clockOut: String): String {
-        val format = SimpleDateFormat("HH:mm:ss", Locale.KOREA)
-        val inTime = format.parse(clockIn)
-        val outTime = format.parse(clockOut)
-        val diffInMillis = outTime.time - inTime.time
-        val hours = (diffInMillis / (1000 * 60 * 60)).toInt()
-        val minutes = ((diffInMillis / (1000 * 60)) % 60).toInt()
-        return String.format("%02d:%02d", hours, minutes)
+    // RecyclerView 설정
+    private fun setupRecyclerView() {
+        recordAdapter = RecordAdapter(records)
+        recyclerView.layoutManager = LinearLayoutManager(requireContext())
+        recyclerView.adapter = recordAdapter
     }
 
-    // 데이터 클래스 정의
-    data class AttendanceRecordWithTime(
-        val id: Int,
-        val date: String,
-        val clockIn: String, // 출근 시간
-        val clockOut: String, // 퇴근 시간
-        val workedHours: String, // 근무 시간
-        val workerIndex: Int? = null, // 근로자 구분 (사업주용)
-        val workerName: String? // 근로자 이름 (사업주, 근로자 모두 사용)
-    )
+    // 출퇴근 버튼 처리 (근로자인 경우)
+    private fun handleClockInOut() {
+        val currentDate = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+        val currentTime = getCurrentTime()
 
-    // 어댑터 정의
-    class RecordAdapter(private val records: MutableList<AttendanceRecordWithTime>) :
-        RecyclerView.Adapter<RecordAdapter.RecordViewHolder>() {
-
-        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecordViewHolder {
-            val view = LayoutInflater.from(parent.context)
-                .inflate(R.layout.item_work_record, parent, false)
-            return RecordViewHolder(view)
-        }
-
-        override fun onBindViewHolder(holder: RecordViewHolder, position: Int) {
-            val record = records[position]
-            holder.tvNumber.text = (position + 1).toString() // 번호 1부터 시작
-            holder.tvDate.text = record.date
-            holder.tvClockIn.text = formatTimeForTable(record.clockIn)
-            holder.tvClockOut.text = formatTimeForTable(record.clockOut)
-            holder.tvWorkedHours.text = record.workedHours
-            holder.tvWorkerName.text = record.workerName // 이름 추가
-        }
-
-        override fun getItemCount(): Int {
-            return records.size
-        }
-
-        // RecyclerView의 기록 갱신
-        fun updateRecords(newRecords: List<AttendanceRecordWithTime>) {
-            records.clear()
-            records.addAll(newRecords)
-            notifyDataSetChanged()
-        }
-
-        inner class RecordViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-            val tvNumber: TextView = itemView.findViewById(R.id.tvNumber)
-            val tvDate: TextView = itemView.findViewById(R.id.tvDate)
-            val tvClockIn: TextView = itemView.findViewById(R.id.tvClockIn)
-            val tvClockOut: TextView = itemView.findViewById(R.id.tvClockOut)
-            val tvWorkedHours: TextView = itemView.findViewById(R.id.tvWorkedHours)
-            val tvWorkerName: TextView = itemView.findViewById(R.id.tvWorkerName) // 이름 표시
-        }
-
-        // 표에 시간 형식 변경: 시:분만 표시
-        private fun formatTimeForTable(time: String): String {
-            val timeParts = time.split(":")
-            return if (timeParts.size >= 2) {
-                "${timeParts[0]}:${timeParts[1]}"
+        if (isClockedIn) {
+            clockOutTime = currentTime
+            tvClockOut.text = "퇴근 시간: $clockOutTime"
+            // saveWorkTime 호출 시, clockIn이 null일 가능성을 고려해 안전하게 처리합니다.
+            if (clockInTime != null) {
+                saveWorkTime(currentDate, clockInTime!!, clockOutTime!!)
             } else {
-                time
+                Toast.makeText(requireContext(), "출근 시간이 등록되지 않았습니다.", Toast.LENGTH_SHORT).show()
+                return // 출근 시간이 없으면 저장하지 않음
             }
+            btnClockInOut.text = "출근"
+            btnClockInOut.backgroundTintList =
+                ContextCompat.getColorStateList(requireContext(), android.R.color.holo_green_light)
+            isClockedIn = false
+        } else {
+            clockInTime = currentTime
+            tvClockIn.text = "출근 시간: $clockInTime"
+            clockOutTime = null
+            tvClockOut.text = "퇴근 시간: 미등록"
+            btnClockInOut.text = "퇴근"
+            btnClockInOut.backgroundTintList =
+                ContextCompat.getColorStateList(requireContext(), android.R.color.holo_red_light)
+            isClockedIn = true
+        }
+    }
+
+    // 출퇴근 기록 저장
+    private fun saveWorkTime(date: String, openTime: String, closeTime: String) {
+        val workTime = WorkTime(
+            id = null, // Firebase에서 자동 생성되는 키를 사용하므로 null로 설정
+            uid = uid ?: "",
+            date = date,
+            clockIn = openTime,
+            clockOut = closeTime,
+            workedHours = calculateWorkedHours(openTime, closeTime),
+            hourlyRate = hourlyRate ?: "10000",
+            userName = username ?: "알 수 없는 사용자"
+        )
+
+        // 데이터를 회사 코드 아래에 저장
+        val workTimeRef = database.child("worktimes").child(companyCode ?: "unknown_company")
+        workTimeRef.push().setValue(workTime)
+            .addOnSuccessListener {
+                // 저장 후 기록을 다시 가져와 RecyclerView를 갱신합니다.
+                fetchRecords()
+                Toast.makeText(requireContext(), "출퇴근 기록이 저장되었습니다.", Toast.LENGTH_SHORT).show()
+            }
+            .addOnFailureListener {
+                Toast.makeText(requireContext(), "저장 실패: ${it.message}", Toast.LENGTH_SHORT).show()
+            }
+    }
+
+    // 기록 가져오기
+    private fun fetchRecords() {
+        records.clear()
+        val startDateStr = tvStartDate.text.toString()
+        val endDateStr = tvEndDate.text.toString()
+        val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+        val startDate = dateFormat.parse(startDateStr)
+        val endDate = dateFormat.parse(endDateStr)
+
+        val queryUid = if (isEmployer) selectedWorkerUid else uid
+
+        val workTimeRef = database.child("worktimes").child(companyCode ?: "unknown_company")
+
+        workTimeRef.orderByChild("uid").equalTo(queryUid)
+            .addListenerForSingleValueEvent(object : ValueEventListener {
+                override fun onDataChange(snapshot: DataSnapshot) {
+
+                    Log.d("WorkRecordFragment", "Fetching records for UID: $queryUid")
+                    Log.d("WorkRecordFragment", "Start Date: $startDateStr, End Date: $endDateStr")
+
+                    for (recordSnapshot in snapshot.children) {
+                        val workRecord = recordSnapshot.getValue(WorkTime::class.java)
+                        if (workRecord != null) {
+                            val recordDate = dateFormat.parse(workRecord.date)
+                            if (recordDate != null && startDate != null && endDate != null) {
+                                if (!recordDate.before(startDate) && !recordDate.after(endDate)) {
+                                    records.add(workRecord)
+                                }
+                            }
+                        }
+                    }
+                    records.sortByDescending { it.date } // 날짜 순으로 정렬
+                    recordAdapter.notifyDataSetChanged()
+
+                    if (records.isEmpty()) {
+                        Toast.makeText(requireContext(), "해당 기간의 기록이 없습니다.", Toast.LENGTH_SHORT)
+                            .show()
+                    }
+                }
+
+                override fun onCancelled(error: DatabaseError) {
+                    Toast.makeText(requireContext(), "기록을 불러오는데 실패했습니다.", Toast.LENGTH_SHORT).show()
+                }
+            })
+    }
+
+    // 현재 시간 가져오기
+    private fun getCurrentTime(): String {
+        val currentTimeFormat = SimpleDateFormat("HH:mm:ss", Locale.getDefault())
+        currentTimeFormat.timeZone = TimeZone.getTimeZone("Asia/Seoul") // 한국 표준시로 설정
+        val currentTime = currentTimeFormat.format(Date())
+        Log.d("WorkRecordFragment", "Current Time: $currentTime")
+        return currentTime
+    }
+
+
+    // 근무 시간 계산
+    private fun calculateWorkedHours(clockIn: String, clockOut: String): String {
+        return try {
+            val format = SimpleDateFormat("HH:mm:ss", Locale.getDefault())
+            val dateIn = format.parse(clockIn)
+            val dateOut = format.parse(clockOut)
+            val diff = dateOut.time - dateIn.time
+            val hours = diff / (1000 * 60 * 60)
+            val minutes = (diff / (1000 * 60)) % 60
+            String.format("%02d:%02d", hours, minutes)
+        } catch (e: Exception) {
+            "00:00"
         }
     }
 }

@@ -17,7 +17,7 @@
             android:id="@+id/tvgroup"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="그룹 선택"
+            android:text="날짜 선택"
             android:textSize="18sp"
             android:textColor="@android:color/black"
             android:layout_marginBottom="8dp"/>
