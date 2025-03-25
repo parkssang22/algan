@@ -20,6 +20,7 @@ class ChecklistFragment : Fragment() {
     private lateinit var auth: FirebaseAuth
     private var _binding: FragmentChecklistBinding? = null
     private val binding get() = _binding!!
+    private var lastLoadedKey: String? = null
 
     // 상태 변수들
     private var isBusinessOwner = false
@@ -33,14 +34,6 @@ class ChecklistFragment : Fragment() {
     // 어댑터 선언
     private lateinit var listViewAdapter: ChecklistAdapter
 
-    override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View {
-        _binding = FragmentChecklistBinding.inflate(inflater, container, false)
-        return binding.root
-    }
-
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         auth = FirebaseAuth.getInstance()
@@ -50,10 +43,18 @@ class ChecklistFragment : Fragment() {
 
         auth.currentUser?.let {
             fetchUserData(it.uid) {
-                setupListView()
+                requireActivity().runOnUiThread {
+                    setupListView()
+                }
             }
         } ?: run {
             Toast.makeText(requireContext(), "로그인이 필요합니다.", Toast.LENGTH_SHORT).show()
+        }
+
+        // ListView 스크롤 활성화 및 설정
+        binding.listViewItems.apply {
+            isVerticalScrollBarEnabled = true
+            overScrollMode = View.OVER_SCROLL_IF_CONTENT_SCROLLS
         }
 
         // ListView 스크롤 리스너 설정
@@ -73,7 +74,7 @@ class ChecklistFragment : Fragment() {
     }
 
 
-    // 사용자 데이터 가져오기 함수
+    // 🔹 근로자 목록 가져오기 (사업주용)
     private fun fetchUserData(userId: String, callback: () -> Unit) {
         database.child("companies")
             .orderByChild("owner/uid")
@@ -84,17 +85,21 @@ class ChecklistFragment : Fragment() {
                         for (companySnapshot in snapshot.children) {
                             companyCode = companySnapshot.key ?: ""
                             loggedInUserUid = userId
-                            isBusinessOwner = companySnapshot.child("owner/uid")
-                                .getValue(String::class.java) == userId
-                            callback()
+                            isBusinessOwner = companySnapshot.child("owner/uid").getValue(String::class.java) == userId
+
+                            requireActivity().runOnUiThread {
+                                if (isBusinessOwner) {
+                                    setupBusinessOwnerUI()
+                                } else {
+                                    setupEmployeeUI()
+                                }
+                                fetchWorkerList() // ✅ 근로자 목록 불러오기 추가
+                                callback()
+                            }
                             return
                         }
                     } else {
-                        Toast.makeText(
-                            requireContext(),
-                            "회사 정보를 찾을 수 없습니다.",
-                            Toast.LENGTH_SHORT
-                        ).show()
+                        Toast.makeText(requireContext(), "회사 정보를 찾을 수 없습니다.", Toast.LENGTH_SHORT).show()
                     }
                 }
 
@@ -103,6 +108,8 @@ class ChecklistFragment : Fragment() {
                 }
             })
     }
+
+
 
 
     // 🔹 사업주 UI 설정
@@ -114,43 +121,6 @@ class ChecklistFragment : Fragment() {
         binding.buttonAddItem.visibility = View.VISIBLE  // 여기가 중요합니다.
     }
 
-    // 🔹 근로자 목록 가져오기 (사업주용)
-    private fun fetchWorkerList() {
-        database.child("companies").child(companyCode).child("employees")
-            .addListenerForSingleValueEvent(object : ValueEventListener {
-                override fun onDataChange(snapshot: DataSnapshot) {
-                    if (!snapshot.exists()) {
-                        Log.w("ChecklistFragment", "근로자 목록이 없습니다.")
-                        Toast.makeText(requireContext(), "근로자가 없습니다.", Toast.LENGTH_SHORT).show()
-                        return
-                    }
-
-                    employeeList.clear()
-                    for (employeeSnapshot in snapshot.children) {
-                        val employee = employeeSnapshot.getValue(Employee::class.java)
-                        if (employee != null) {
-                            employeeList.add(employee)
-                        }
-                    }
-
-                    if (employeeList.isNotEmpty()) {
-                        setupEmployeeSpinner()
-                    } else {
-                        Log.w("ChecklistFragment", "근로자 목록이 비어 있습니다.")
-                        Toast.makeText(requireContext(), "근로자가 없습니다.", Toast.LENGTH_SHORT).show()
-                    }
-                }
-
-                override fun onCancelled(error: DatabaseError) {
-                    Log.e("ChecklistFragment", "근로자 목록을 불러오는 데 실패했습니다.", error.toException())
-                    Toast.makeText(
-                        requireContext(),
-                        "근로자 목록을 불러오는 데 실패했습니다.",
-                        Toast.LENGTH_SHORT
-                    ).show()
-                }
-            })
-    }
 
 
     // 🔹 근로자 UI 설정
@@ -178,14 +148,24 @@ class ChecklistFragment : Fragment() {
 
         // ListView 스크롤 활성화
         binding.listViewItems.isVerticalScrollBarEnabled = true
-        binding.listViewItems.overScrollMode = View.OVER_SCROLL_IF_CONTENT_OVERFLOWS
+        binding.listViewItems.overScrollMode = View.OVER_SCROLL_IF_CONTENT_SCROLLS
 
         // 근로자 목록 로드
         fetchWorkerList()
 
+        lastLoadedKey = null
+
         // 초기에 모든 근로자에 대한 체크리스트 로드
         loadChecklistsForEmployee(loggedInUserUid)
     }
+
+    private fun scrollToBottom() {
+        binding.listViewItems.post {
+            binding.listViewItems.setSelection(listViewAdapter.count - 1)
+        }
+    }
+
+
 
     // 🔹 근로자 체크리스트 불러오기 (여기서 adapter.notifyDataSetChanged () 호출)
     private fun loadChecklistsForEmployee(employeeUid: String) {
@@ -200,6 +180,7 @@ class ChecklistFragment : Fragment() {
 
                     if (!snapshot.exists()) {
                         Log.w("ChecklistFragment", "체크리스트 데이터 없음.")
+                        lastLoadedKey = snapshot.children.lastOrNull()?.key
                         Toast.makeText(
                             requireContext(),
                             "등록된 체크리스트가 없습니다.",
@@ -218,6 +199,7 @@ class ChecklistFragment : Fragment() {
 
                     listViewAdapter.notifyDataSetChanged()
                     setListViewHeightBasedOnItems(binding.listViewItems)
+                    scrollToBottom()
                     Log.d("ChecklistFragment", "총 체크리스트 항목 수: ${checklistItems.size}")
                 }
 
@@ -236,11 +218,25 @@ class ChecklistFragment : Fragment() {
 
     private fun setListViewHeightBasedOnItems(listView: ListView) {
         val listAdapter = listView.adapter ?: return
-        val totalHeight = listView.dividerHeight * (listAdapter.count - 1)
+        var totalHeight = 0
+        for (i in 0 until listAdapter.count) {
+            val listItem = listAdapter.getView(i, null, listView)
+            listItem.measure(0, 0)
+            totalHeight += listItem.measuredHeight
+        }
+
         val params = listView.layoutParams
-        params.height = 500  // 고정된 높이 설정 (화면 크기에 맞추어 조절)
+        params.height = totalHeight + (listView.dividerHeight * (listAdapter.count - 1))
         listView.layoutParams = params
         listView.requestLayout()
+    }
+
+    override fun onCreateView(
+        inflater: LayoutInflater, container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
+        _binding = FragmentChecklistBinding.inflate(inflater, container, false)
+        return binding.root
     }
 
     // 🔹 근무자 선택 Spinner 설정
@@ -291,6 +287,95 @@ class ChecklistFragment : Fragment() {
         }
     }
 
+    private fun loadMoreChecklists() {
+        Log.d("ChecklistFragment", "추가 데이터 로드 시작")
+
+        if (lastLoadedKey == null) {
+            Log.w("ChecklistFragment", "lastLoadedKey가 null입니다.")
+            return
+        }
+
+        database.child("checklist")
+            .child(companyCode)
+            .child(loggedInUserUid)
+            .orderByKey()
+            .startAfter(lastLoadedKey!!)
+            .limitToFirst(10)
+            .addListenerForSingleValueEvent(object : ValueEventListener {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    if (!snapshot.exists()) {
+                        Log.w("ChecklistFragment", "추가 데이터 없음.")
+                        return
+                    }
+
+                    for (checklistSnapshot in snapshot.children) {
+                        val checklistItem = checklistSnapshot.getValue(CheckList::class.java)
+                        checklistItem?.let {
+                            checklistItems.add(it)
+                            Log.d("ChecklistFragment", "추가된 체크리스트: ${it.contents}")
+                        }
+                    }
+
+                    lastLoadedKey = snapshot.children.lastOrNull()?.key ?: lastLoadedKey
+                    listViewAdapter.notifyDataSetChanged()
+                    setListViewHeightBasedOnItems(binding.listViewItems)
+                }
+
+                override fun onCancelled(error: DatabaseError) {
+                    Log.e("ChecklistFragment", "추가 데이터 로드 실패", error.toException())
+                    Toast.makeText(
+                        requireContext(),
+                        "추가 데이터를 불러오는 데 실패했습니다.",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            })
+    }
+
+    private fun showLoadingIndicator() {
+        //プログ레스바 표시 로직
+    }
+
+    private fun hideLoadingIndicator() {
+        //プログレ스바 숨기기 로직
+    }
+
+    private fun fetchWorkerList() {
+        database.child("companies").child(companyCode).child("employees")
+            .addListenerForSingleValueEvent(object : ValueEventListener {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    if (!snapshot.exists()) {
+                        Log.w("ChecklistFragment", "근로자 목록이 없습니다.")
+                        Toast.makeText(requireContext(), "근로자가 없습니다.", Toast.LENGTH_SHORT).show()
+                        return
+                    }
+
+                    employeeList.clear()
+                    for (employeeSnapshot in snapshot.children) {
+                        val employee = employeeSnapshot.getValue(Employee::class.java)
+                        if (employee != null) {
+                            employeeList.add(employee)
+                        }
+                    }
+
+                    if (employeeList.isNotEmpty()) {
+                        setupEmployeeSpinner() // ✅ 스피너 설정
+                    } else {
+                        Log.w("ChecklistFragment", "근로자 목록이 비어 있습니다.")
+                        Toast.makeText(requireContext(), "근로자가 없습니다.", Toast.LENGTH_SHORT).show()
+                    }
+                }
+
+                override fun onCancelled(error: DatabaseError) {
+                    Log.e("ChecklistFragment", "근로자 목록을 불러오는 데 실패했습니다.", error.toException())
+                    Toast.makeText(
+                        requireContext(),
+                        "근로자 목록을 불러오는 데 실패했습니다.",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            })
+    }
 
     // 🔹 체크리스트 추가 버튼 설정(사업주만 사용 가능).
     private fun setupAddButton() {

@@ -1,6 +1,65 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-             android:layout_width="match_parent"
-             android:layout_height="match_parent">
+<!-- 급여계산기 계산 결과 -->
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginBottom="10dp"
+        android:text="계산 결과"
+        android:textAlignment="center"
+        android:textSize="20dp"
+        android:textStyle="bold" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_gravity="center"
+        android:gravity="center"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/salaryAmountD"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingTop="5dp"
+            android:text="예상 지급액: 0원"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/totalWorkHoursD"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="총 근무시간: 00시간"
+            android:textSize="16sp" />
+
+        <TextView
+            android:id="@+id/hourlyRateD"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="시급: 0원"
+            android:textSize="16sp" />
+
+        <TextView
+            android:id="@+id/deductionsD"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="공제: 00%"
+            android:textSize="16sp" />
+    </LinearLayout>
+    <!-- 실 지급액 계산 결과 -->
+    <android.widget.Button
+        android:id="@+id/btnCloseOutput"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:text="닫기" />
+</LinearLayout>

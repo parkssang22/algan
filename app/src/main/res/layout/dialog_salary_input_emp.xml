@@ -1,6 +1,183 @@
-<?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-             android:layout_width="match_parent"
-             android:layout_height="match_parent">
+<?xml version="1.0" encoding="utf-8"?><!-- (사업주만) 근로자 개인별 급여 정보 수정 -->
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingTop="56dp">
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_marginBottom="10dp"
+            android:text="급여 정보 수정"
+            android:textAlignment="center"
+            android:textSize="20dp"
+            android:textStyle="bold"
+
+            />
+        <!-- 시급 입력 및 공제 설정 -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="시급 입력"
+            android:textSize="16sp" />
+
+        <EditText
+            android:id="@+id/etHourlyRateEmp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="시급을 입력하세요"
+            android:inputType="numberDecimal" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="공제 비율 (%)"
+            android:textSize="16sp" />
+
+        <EditText
+            android:id="@+id/etDeductionsEmp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="공제 비율을 입력하세요"
+            android:inputType="numberDecimal" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="3"
+                android:orientation="vertical">
+                <!-- 근무 시간 입력 -->
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="근무시간"
+                    android:textSize="16sp" />
+
+                <EditText
+                    android:id="@+id/etWorkHoursEmp"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="근무시간을 입력하세요"
+                    android:inputType="text" />
+
+                <CheckBox
+                    android:id="@+id/cbRateEmp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="세부설정" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="국민연금 (%)"
+                    android:textSize="16sp" />
+
+                <EditText
+                    android:id="@+id/etRate1Emp"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="공제 비율을 입력하세요"
+                    android:inputType="numberDecimal" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="건강보험 (%)"
+                    android:textSize="16sp" />
+
+                <EditText
+                    android:id="@+id/etRate2Emp"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="공제 비율을 입력하세요"
+                    android:inputType="numberDecimal" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="고용보험 (%)"
+                    android:textSize="16sp" />
+
+                <EditText
+                    android:id="@+id/etRate3Emp"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="공제 비율을 입력하세요"
+                    android:inputType="numberDecimal" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="산재보험 (%)"
+                    android:textSize="16sp" />
+
+                <EditText
+                    android:id="@+id/etRate4Emp"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="공제 비율을 입력하세요"
+                    android:inputType="numberDecimal" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="장기요양보험 (%)"
+                    android:textSize="16sp" />
+
+                <EditText
+                    android:id="@+id/etRate5Emp"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="공제 비율을 입력하세요"
+                    android:inputType="numberDecimal" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="소득세 (%)"
+                    android:textSize="16sp" />
+
+                <EditText
+                    android:id="@+id/etRate6Emp"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="공제 비율을 입력하세요"
+                    android:inputType="numberDecimal" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="기타 (%)"
+                    android:textSize="16sp" />
+
+                <EditText
+                    android:id="@+id/etRate7Emp"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="공제 비율을 입력하세요"
+                    android:inputType="numberDecimal" />
+
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- 실 지급액 계산 결과 -->
+        <android.widget.Button
+            android:id="@+id/btnSetSalaryEmp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:text="설정" />
+    </LinearLayout>
+</ScrollView>

@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
-<selector xmlns:android="http://schemas.android.com/apk/res/android">
-
-</selector>
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+    <solid android:color="@color/white"/> <!-- 대타/공지/소통 버튼 배경 색 -->
+    <corners android:radius="200dp"/> <!-- 둥근 모서리! -->
+</shape>

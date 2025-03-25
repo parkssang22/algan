@@ -1,6 +1,113 @@
-<?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-             android:layout_width="match_parent"
-             android:layout_height="match_parent">
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/employeeSalaryInfo"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:padding="1dp"
+    android:paddingLeft="5dp"
+    android:visibility="visible">
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:orientation="horizontal">
+        <!-- 번호 -->
+        <TextView
+            android:id="@+id/tvNumber"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="8dp"
+            android:text="1"
+            android:textAlignment="center"
+            android:textSize="14sp" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:orientation="horizontal">
+        <!-- 이름 -->
+        <TextView
+            android:id="@+id/tvWorkerName"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="8dp"
+            android:text="이름"
+            android:textAlignment="center" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="3"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/salaryAmount"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingTop="5dp"
+            android:text="실 지급액: 0원"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/worktime"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="근무시간: 00:00 ~ 00:00"
+            android:textSize="16sp" />
+
+        <TextView
+            android:id="@+id/totalWorkHours"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="총 근무시간: 00시간"
+            android:textSize="16sp" />
+
+        <TextView
+            android:id="@+id/hourlyRate"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="시급: 0원"
+            android:textSize="16sp" />
+
+        <TextView
+            android:id="@+id/deductions"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="공제: 00%"
+            android:textSize="16sp" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1">
+        <!-- 내용 확장 버튼 -->
+        <android.widget.Button
+            android:id="@+id/buttonExpand"
+            android:layout_width="30dp"
+            android:layout_height="40dp"
+            android:layout_marginStart="8dp"
+            android:text="+"
+            android:textSize="10sp" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1">
+        <!-- 급여계산기 -->
+        <android.widget.Button
+            android:id="@+id/btnSalaryReset"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_gravity="center"
+            android:text="급여 정보 수정" />
+    </LinearLayout>
+</LinearLayout>
