@@ -30,6 +30,8 @@ data class CheckList(
     val username: String = "",
     val contents: String = "",
     val date: String = "",
+    val time: String = "",
+    var status: String = "미완료"
 )
 
 // 출퇴근 기록 데이터 클래스

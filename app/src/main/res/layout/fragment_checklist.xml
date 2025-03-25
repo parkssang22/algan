@@ -12,21 +12,6 @@
         android:layout_height="wrap_content"
         android:orientation="vertical">
 
-        <!-- 그룹 선택 -->
-        <TextView
-            android:id="@+id/tvgroup"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="날짜 선택"
-            android:textSize="18sp"
-            android:textColor="@android:color/black"
-            android:layout_marginBottom="8dp"/>
-
-        <Spinner
-            android:id="@+id/spinnerGroup"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"/>
-
         <!-- 근로자 선택 -->
         <TextView
             android:id="@+id/tvselectEmployees"
@@ -84,8 +69,9 @@
         <ListView
             android:id="@+id/listViewItems"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
             android:divider="@android:color/darker_gray"
-            android:dividerHeight="0.5dp" />
+            android:scrollbars="vertical"
+            android:overScrollMode="ifContentOverflows" />
+
     </LinearLayout>
 </ScrollView>
