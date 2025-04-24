@@ -55,6 +55,7 @@
             android:text="세부설정" />
 
         <TextView
+            android:id="@+id/textView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="국민연금 (%)"
@@ -68,6 +69,7 @@
             android:inputType="numberDecimal" />
 
         <TextView
+            android:id="@+id/textView2"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="건강보험 (%)"
@@ -81,6 +83,7 @@
             android:inputType="numberDecimal" />
 
         <TextView
+            android:id="@+id/textView3"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="고용보험 (%)"
@@ -94,6 +97,7 @@
             android:inputType="numberDecimal" />
 
         <TextView
+            android:id="@+id/textView4"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="산재보험 (%)"
@@ -107,6 +111,7 @@
             android:inputType="numberDecimal" />
 
         <TextView
+            android:id="@+id/textView5"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="장기요양보험 (%)"
@@ -120,6 +125,7 @@
             android:inputType="numberDecimal" />
 
         <TextView
+            android:id="@+id/textView6"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="소득세 (%)"
@@ -133,6 +139,7 @@
             android:inputType="numberDecimal" />
 
         <TextView
+            android:id="@+id/textView7"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="기타 (%)"

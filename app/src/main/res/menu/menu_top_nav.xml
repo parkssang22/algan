@@ -6,22 +6,16 @@
         android:id="@+id/menu_Allemployee"
         android:title="전체근로자"
         app:showAsAction="always" />
-    <!-- 마이페이지 버튼(임시) -->
-    <item
-        android:id="@+id/menu_mypage"
-        android:icon="@drawable/baseline_account_circle_24"
-        android:title="마이페이지"
-        app:showAsAction="always" />
 
     <!-- 알림 버튼 -->
     <item
-        android:id="@+id/menu_notification"
+        android:id="@+id/menu_alam"
         android:icon="@drawable/baseline_notification_important_24"
         android:title="알림"
         app:showAsAction="always" />
     <!-- 내정보 버튼 -->
     <item
-        android:id="@+id/menu_info"
+        android:id="@+id/menu_mypage"
         android:icon="@drawable/baseline_account_circle_24"
         android:title="내정보"
         app:showAsAction="always" />

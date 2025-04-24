@@ -55,12 +55,10 @@
             android:textStyle="bold" />
 
         <TextView
-            android:id="@+id/worktime"
+            android:id="@+id/workDays"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:text="근무시간: 00:00 ~ 00:00"
-            android:textSize="16sp" />
+            android:text="근무일수: 0일"/>
 
         <TextView
             android:id="@+id/totalWorkHours"

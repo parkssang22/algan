@@ -40,7 +40,6 @@ class WorkRecordFragment : Fragment() {
     private var clockOutTime: String? = null
     private var uid: String? = null
     private var username: String? = null
-    private var hourlyRate: String? = null
     private var companyCode: String? = null
     private var companyName: String? = null
     private var isEmployer: Boolean = false
@@ -318,7 +317,6 @@ class WorkRecordFragment : Fragment() {
             clockIn = openTime,
             clockOut = closeTime,
             workedHours = calculateWorkedHours(openTime, closeTime),
-            hourlyRate = hourlyRate ?: "10000",
             userName = username ?: "알 수 없는 사용자"
         )
 

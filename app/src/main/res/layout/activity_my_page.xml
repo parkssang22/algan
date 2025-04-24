@@ -9,9 +9,28 @@
     app:cardCornerRadius="16dp"
     app:cardElevation="4dp">
 
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/light_background"
+        android:elevation="4dp"
+        android:popupTheme="@style/ThemeOverlay.AppCompat.Light"
+        android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar">
+
+        <ImageButton
+            android:id="@+id/back_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:padding="8dp"
+            android:src="@drawable/baseline_arrow_back_ios_24" />
+    </androidx.appcompat.widget.Toolbar>
+
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:layout_marginTop="56dp"
         android:padding="16dp">
 
         <LinearLayout
@@ -19,6 +38,7 @@
             android:layout_height="wrap_content"
             android:gravity="center_horizontal"
             android:orientation="vertical">
+
             <!-- 이미지 -->
             <ImageView
                 android:layout_width="150dp"
@@ -29,7 +49,7 @@
                 android:id="@+id/userrollTextView"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-
+                android:background="@color/noticeboard_background"
                 android:text="역할: "
                 android:textAlignment="center"
                 android:textColor="@color/black"
@@ -61,7 +81,6 @@
                     android:text="전화번호: "
                     android:textColor="@android:color/black"
                     android:textSize="20sp" />
-
 
 
                 <EditText
@@ -100,29 +119,54 @@
                     android:id="@+id/companyCodeTextView"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_marginBottom="8dp"
                     android:text="회사 코드: "
                     android:textColor="@android:color/black"
                     android:textSize="20sp" />
+
+                <android.widget.TextView
+                    android:id="@+id/timeSalaryTextView"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="8dp"
+                    android:text="시급 : "
+                    android:textColor="@android:color/black"
+                    android:textSize="20sp"
+                    android:visibility="gone" />
             </LinearLayout>
             <!-- 수정 버튼 -->
-            <android.widget.Button
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/editButton"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:textSize="18dp"
                 android:text="수정하기"
-                android:background="@color/pastel_blue"
-                android:textColor="@color/white"
-                app:cornerRadius="8dp" />
-            <!-- 저장 버튼 -->
-            <android.widget.Button
-
-                android:layout_marginTop="20dp"
+                android:textColor="@android:color/white"
+                android:layout_marginTop="16dp"
+                android:textStyle="bold"
+                style="@style/Widget.MaterialComponents.Button"
+                android:backgroundTint="@color/pastel_blue"
+                app:cornerRadius="8dp"
+                android:elevation="4dp"
+                android:importantForAccessibility="yes"
+                android:contentDescription="Login button"
+                android:layout_marginStart="10dp"
+                android:layout_marginEnd="10dp" />
+            <!-- 로그아웃 버튼 -->
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/logoutButton"
+                style="@style/Widget.MaterialComponents.Button.TextButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="로그아웃" />
+                android:layout_marginStart="10dp"
+                android:layout_marginTop="20dp"
+                android:layout_marginEnd="10dp"
+                android:backgroundTint="@android:color/transparent"
+                android:elevation="0dp"
+                android:text="로그아웃"
+                android:textColor="@color/pastel_blue"
+                android:textStyle="bold"
+                app:cornerRadius="8dp"
+                app:strokeWidth="0dp" />
         </LinearLayout>
     </ScrollView>
 </com.google.android.material.card.MaterialCardView>

@@ -75,12 +75,10 @@
                         android:textStyle="bold" />
 
                     <TextView
-                        android:id="@+id/worktime"
+                        android:id="@+id/workDays"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="20dp"
-                        android:text="근무시간: 00:00 ~ 00:00"
-                        android:textSize="25dp" />
+                        android:text="근무일수: 0일"/>
 
                     <TextView
                         android:id="@+id/totalWorkHours"
@@ -106,6 +104,12 @@
                         android:text="공제: 00%"
                         android:textSize="25dp" />
 
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="세부 공제 내역"
+                        android:textSize="20dp" />
+
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -115,12 +119,6 @@
                         android:paddingLeft="40dp"
                         android:paddingTop="10dp"
                         android:paddingBottom="10dp">
-
-                        <TextView
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:text="세부 공제 내역"
-                            android:textSize="20dp" />
 
                         <TextView
                             android:id="@+id/tvrate1"

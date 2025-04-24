@@ -12,7 +12,6 @@
         android:orientation="vertical">
 
 
-
         <TextView
             android:id="@+id/tvDate"
             android:layout_width="wrap_content"
@@ -22,7 +21,7 @@
             android:textColor="@android:color/darker_gray" />
 
         <TextView
-            android:id="@+id/tvEmployeeName"
+            android:id="@+id/tvUsername"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="근로자 이름"

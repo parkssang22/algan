@@ -41,7 +41,33 @@ data class WorkTime(
     val date: String = "",
     val clockIn: String = "",
     val clockOut: String = "",
-    val workedHours: String = "",
-    val hourlyRate: String = "", // 시급
+    val workedHours: String = "", //누적시간
     val userName: String = "" // 근로자 이름 (사용자의 username)
 )
+
+// 급여기능 근로자 데이터 클래스
+data class CalculatedSalary(
+    val uid: String = "",               // 근로자 UID
+    val userName: String = "",          // 근로자 이름
+    val date: String = "",              // 급여 계산 날짜 또는 기준 날짜
+    val workedHours: Double = 0.0,      // 총 근무 시간 (Decimal 변환 후)
+    val workDays: Int = 0,
+    val hourlyRate: Double = 0.0,       // 시급
+    val grossPay: Double = 0.0,         // 총 지급액 = 시급 * 근무시간
+    val deductionsPercent: Double = 0.0,// 공제율 (ex. 3.3)
+    val deductionsAmount: Double = 0.0, // 공제 금액 = grossPay * (deductionsPercent / 100)
+    val netPay: Double = 0.0            // 실지급액 = grossPay - deductionsAmount
+)
+
+
+//세부공제항목
+data class Deductions(
+    val nationalPension: Double,
+    val healthInsurance: Double,
+    val employmentInsurance: Double,
+    val industrialAccident: Double,
+    val longTermCare: Double,
+    val incomeTax: Double,
+    val other: Double
+)
+

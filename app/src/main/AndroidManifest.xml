@@ -2,7 +2,22 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <uses-feature
+        android:name="android.hardware.camera"
+        android:required="true" />
+
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission
+        android:name="android.permission.READ_EXTERNAL_STORAGE"
+        android:maxSdkVersion="32" />
+    <uses-permission
+        android:name="android.permission.READ_MEDIA_IMAGES"
+        android:minSdkVersion="33" />
+    <uses-permission
+        android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+        android:maxSdkVersion="28" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
     <application
         android:allowBackup="true"
@@ -13,23 +28,46 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.Algan"
-        tools:targetApi="31">
-        <activity
-            android:name=".InfoActivity"
+        tools:targetApi="33">
+
+        <!-- ✅ Firebase 메시지 서비스 등록 -->
+        <service
+            android:name=".MyFirebaseMessagingService"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+            </intent-filter>
+        </service>
+
+        <!-- SignUpActivity -->
+        <activity android:name=".SignUpActivity"
             android:exported="true" />
+
+        <!-- MyPageActivity -->
         <activity
-            android:name=".LogoActivity"
+            android:name=".MyPageActivity"
+            android:exported="true" />
+
+        <!-- SplashActivity -->
+        <activity
+            android:name=".SplashActivity"
+            android:theme="@style/Theme.Algan"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-        </activity> <!-- LoginActivity -->
+        </activity>
+
         <!-- LoginActivity -->
-        <activity android:name=".LoginActivity" />
-        <activity android:name=".SignUpActivity" />
-        <activity android:name=".MainActivity" />
+        <activity
+            android:name=".LoginActivity"
+            android:theme="@style/Theme.Algan" />
+
+        <!-- MainActivity -->
+        <activity android:name=".MainActivity"
+            android:exported="true" />
+
     </application>
 
 </manifest>
