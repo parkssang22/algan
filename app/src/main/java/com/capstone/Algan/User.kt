@@ -70,4 +70,3 @@ data class Deductions(
     val incomeTax: Double,
     val other: Double
 )
-
