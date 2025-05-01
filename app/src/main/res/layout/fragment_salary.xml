@@ -75,6 +75,14 @@
                         android:textStyle="bold" />
 
                     <TextView
+                        android:id="@+id/tvGrossPay"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="총 급여액: 0원"
+                        android:textSize="25dp"
+                        android:layout_marginTop="5dp" />
+
+                    <TextView
                         android:id="@+id/workDays"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"

@@ -67,6 +67,11 @@
         <!-- MainActivity -->
         <activity android:name=".MainActivity"
             android:exported="true" />
+        <!-- BeaconService -->
+        <service
+            android:name=".BeaconService"
+            android:enabled="true"
+            android:exported="false" /><!--//에 추가Androidmanifext.xml-->
 
     </application>
 
