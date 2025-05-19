@@ -58,7 +58,14 @@ class SalaryFragment : Fragment() {
 
     private fun setupUI() {
         // RecyclerView 설정
-        salaryRecordAdapter = SalaryRecordAdapter(requireContext(), mutableListOf())
+        salaryRecordAdapter = SalaryRecordAdapter(
+            requireContext(),
+            mutableListOf(),
+            onUpdateRequest = { uid ->
+                // 데이터가 업데이트되면 해당 근로자의 급여 정보 새로고침
+                fetchWorkerSalaryDetails(uid)
+            }
+        )
         binding.SalaryRecyclerView.apply {
             layoutManager = LinearLayoutManager(context)
             adapter = salaryRecordAdapter
@@ -131,35 +138,58 @@ class SalaryFragment : Fragment() {
 
     private fun fetchUserTypeAndData() {
         val userId = FirebaseAuth.getInstance().currentUser?.uid ?: return
+        println("DEBUG: 로그인한 사용자 UID: $userId")
 
-        // 사용자가 비즈니스 소유자인지 확인
+        // 사업주 여부 확인
         database.child("companies")
             .orderByChild("owner/uid")
             .equalTo(userId)
             .addListenerForSingleValueEvent(object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
-                    if (snapshot.exists()) { // 사용자가 사업주
+                    if (snapshot.exists()) {
                         isBusinessOwner = true
-
                         snapshot.children.forEach { company ->
                             companyCode = company.key ?: ""
+                            println("DEBUG: 사업주로 로그인됨. 회사코드: $companyCode")
                             fetchEmployeeList()
                         }
-                    } else { // 사용자가 근로자
+                    } else {
                         isBusinessOwner = false
+                        println("DEBUG: 근로자로 로그인됨. 사용자 UID: $userId")
 
-                        database.child("employees").child(userId).get().addOnSuccessListener {
-                            companyCode = it.child("companyCode").getValue(String::class.java) ?: ""
-                            calculateAndDisplayEmployeeSalary(userId)
-                        }
+                        database.child("companies")
+                            .addListenerForSingleValueEvent(object : ValueEventListener {
+                                override fun onDataChange(companiesSnapshot: DataSnapshot) {
+                                    var foundCompany = false
+
+                                    for (company in companiesSnapshot.children) {
+                                        val companyKey = company.key ?: continue
+                                        val employeeNode = company.child("employees").child(userId)
+                                        if (employeeNode.exists()) {
+                                            companyCode = companyKey
+                                            foundCompany = true
+                                            println("DEBUG: 역추적으로 찾은 회사코드: $companyCode")
+                                            break
+                                        }
+                                    }
+                                    if (foundCompany) {
+                                        calculateAndDisplayEmployeeSalary(userId)
+                                    } else {
+                                        Toast.makeText(context, "근로자의 회사 코드를 찾을 수 없습니다.", Toast.LENGTH_SHORT).show()
+                                    }
+                                }
+
+                                override fun onCancelled(error: DatabaseError) {
+                                    Toast.makeText(context, "회사 정보 로딩 실패: ${error.message}", Toast.LENGTH_SHORT).show()
+                                }
+                            })
                     }
 
                     updateVisibilityBasedOnRole()
                 }
-
                 override fun onCancelled(error: DatabaseError) {
-                    Toast.makeText(context, "데이터 로딩 오류: ${error.message}", Toast.LENGTH_SHORT)
-                        .show()
+                    println("ERROR: 사용자 정보 구분 실패 - ${error.message}")
+                    Toast.makeText(context, "사용자 정보 로딩 실패: ${error.message}", Toast.LENGTH_SHORT).show()
                 }
             })
     }
@@ -170,9 +200,11 @@ class SalaryFragment : Fragment() {
             binding.LinOwner.visibility = View.VISIBLE
             binding.btnShowSalaryInputOwner.visibility = View.VISIBLE
             binding.spinnerWorker.visibility = View.VISIBLE
+            binding.workerSelectionLayout.visibility=View.VISIBLE
         } else {
             binding.LinOwner.visibility = View.GONE
             binding.btnShowSalaryInputOwner.visibility = View.GONE
+            binding.workerSelectionLayout.visibility=View.GONE
             binding.spinnerWorker.visibility = View.GONE
         }
     }
@@ -582,101 +614,76 @@ class SalaryFragment : Fragment() {
         binding.spinnerWorker.adapter = adapter
     }
 
-    // 개별 근로자의 급여 계산 (근로자 화면용)
     private fun calculateAndDisplayEmployeeSalary(uid: String) {
-        // Get start date and end date
         val startDate = binding.tvStartDate.text.toString()
         val endDate = binding.tvEndDate.text.toString()
 
-        if (startDate.isEmpty() || endDate.isEmpty()) {
+        println("DEBUG: 급여 계산 실행 - uid: $uid, 기간: $startDate ~ $endDate")
+        println("DEBUG: 현재 companyCode 값: $companyCode")
+
+        if (startDate.isEmpty() || endDate.isEmpty() ||
+            startDate == "시작 날짜를 선택하세요" || endDate == "종료 날짜를 선택하세요") {
             Toast.makeText(context, "날짜 범위를 선택해주세요", Toast.LENGTH_SHORT).show()
             return
         }
 
+        if (companyCode.isBlank()) {
+            println("WARNING: companyCode가 비어있지만 계산을 계속 시도합니다.")
+            Toast.makeText(context, "회사 코드가 설정되지 않았습니다.", Toast.LENGTH_SHORT).show()
+            return
+        }
+
         // 시급과 공제율 정보 가져오기
-        loadWorkerRate(uid) { hourlyRate, deductionsPercent ->
-            // Firebase 구조에 맞게 경로 수정
-            database.child("worktimes")
-                .orderByChild("uid")
-                .equalTo(uid)
+        loadWorkerRate(uid) onDataChange@{ hourlyRate, deductionsPercent ->
+
+            val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+            val startDateObj = try { dateFormat.parse(normalizeDateString(startDate)) } catch (e: Exception) { null }
+            val endDateObj = try { dateFormat.parse(normalizeDateString(endDate)) } catch (e: Exception) { null }
+
+            if (startDateObj == null || endDateObj == null) {
+                Toast.makeText(context, "날짜 형식이 올바르지 않습니다", Toast.LENGTH_SHORT).show()
+                return@onDataChange
+            }
+
+            database.child("worktimes").child(companyCode)
                 .addListenerForSingleValueEvent(object : ValueEventListener {
                     override fun onDataChange(snapshot: DataSnapshot) {
-                        println("DEBUG: Worker records found: ${snapshot.childrenCount}")
                         var totalWorkedHours = 0.0
-                        var workDaysCount = 0
-                        var username = "Unknown"
+                        val workDates = mutableSetOf<String>()
+                        var userName = "Unknown"
 
-                        // 날짜 파싱을 위한 형식 설정
-                        val dateFormat = java.text.SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+                        for (record in snapshot.children) {
+                            val recordUid = record.child("uid").getValue(String::class.java) ?: continue
+                            if (recordUid != uid) continue
 
-                        // 시작일과 종료일을 Date 객체로 변환
-                        val startDateObj = try {
-                            dateFormat.parse(normalizeDateString(startDate))
-                        } catch (e: Exception) {
-                            null
-                        }
+                            val dateStr = record.child("date").getValue(String::class.java) ?: continue
+                            val workedHoursStr = record.child("workedHours").getValue(String::class.java) ?: continue
+                            val name = record.child("userName").getValue(String::class.java)
+                            if (!name.isNullOrEmpty()) userName = name
 
-                        val endDateObj = try {
-                            dateFormat.parse(normalizeDateString(endDate))
-                        } catch (e: Exception) {
-                            null
-                        }
-
-                        if (startDateObj == null || endDateObj == null) {
-                            Toast.makeText(context, "날짜 형식이 올바르지 않습니다", Toast.LENGTH_SHORT).show()
-                            return
-                        }
-
-                        // 각 근무 기록 확인
-                        for (recordSnapshot in snapshot.children) {
-                            val recordDate = recordSnapshot.child("date").getValue(String::class.java) ?: ""
-                            val username_record = recordSnapshot.child("userName").getValue(String::class.java)
-                            if (username_record != null) {
-                                username = username_record
-                            }
-
-                            // 날짜 객체로 변환
-                            val recordDateObj = try {
-                                dateFormat.parse(recordDate)
-                            } catch (e: Exception) {
-                                continue // 날짜 변환 실패시 다음 기록으로
-                            }
-
-                            // 날짜 범위 내에 있는지 확인
-                            if (recordDateObj != null &&
-                                !recordDateObj.before(startDateObj) &&
-                                !recordDateObj.after(endDateObj)) {
-
-                                // workedHours 가져오기 및 변환
-                                val workedHoursStr = recordSnapshot.child("workedHours").getValue(String::class.java) ?: "00:00"
+                            // 날짜 범위 확인
+                            if (isDateInRange(dateStr, startDate, endDate)) {
+                                workDates.add(dateStr)
                                 val hours = convertTimeStringToHours(workedHoursStr)
-
-                                if (hours > 0) {
-                                    totalWorkedHours += hours
-                                    workDaysCount++
-                                    println("근로자 화면 - 날짜: $recordDate, 시간: $hours, 누적: $totalWorkedHours")
-                                }
+                                if (hours > 0) totalWorkedHours += hours
                             }
                         }
 
-                        // 세부 공제율 정보 가져오기
+                        // 급여 계산
+                        val workDaysCount = workDates.size
+                        val grossPay = hourlyRate * totalWorkedHours
+                        val netPay = grossPay * (1 - (deductionsPercent / 100))
+                        val deductionsAmount = grossPay - netPay
+
+                        // 세부 공제 항목도 로딩
                         loadDetailedDeductions(uid) { detailedDeductions ->
-                            // 급여 계산
-                            val grossPay = totalWorkedHours * hourlyRate
-                            val deductionsAmount = grossPay * (deductionsPercent / 100)
-                            val netPay = grossPay - deductionsAmount
-
-                            // 근무 시간을 소수점 한 자리까지 표시
-                            val formattedWorkHours = String.format("%.1f", totalWorkedHours).toDouble()
-
-                            // 개인 근로자 화면에 표시
                             displayIndividualEmployeeDetails(
                                 CalculatedSalary(
                                     uid = uid,
-                                    userName = username,
+                                    userName = userName,
                                     date = "$startDate ~ $endDate",
                                     workDays = workDaysCount,
-                                    workedHours = formattedWorkHours,
+                                    workedHours = String.format("%.1f", totalWorkedHours).toDouble(),
                                     hourlyRate = hourlyRate,
                                     grossPay = grossPay,
                                     deductionsPercent = deductionsPercent,
@@ -689,7 +696,7 @@ class SalaryFragment : Fragment() {
                     }
 
                     override fun onCancelled(error: DatabaseError) {
-                        Toast.makeText(context, "급여 계산 오류: ${error.message}", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, "근무 기록 조회 실패: ${error.message}", Toast.LENGTH_SHORT).show()
                     }
                 })
         }
@@ -1188,7 +1195,8 @@ class SalaryFragment : Fragment() {
     // SalaryRecordAdapter
     class SalaryRecordAdapter(
         private val context: Context,
-        private var workRecordList: List<Worker>
+        private var workRecordList: List<Worker>,
+        private val onUpdateRequest: (String) -> Unit // 함수 추가: 업데이트 요청을 처리하는 함수
     ) : RecyclerView.Adapter<SalaryRecordAdapter.SalaryViewHolder>() {
 
         inner class SalaryViewHolder(view: View) : RecyclerView.ViewHolder(view) {
@@ -1199,6 +1207,8 @@ class SalaryFragment : Fragment() {
             val totalWorkHours: TextView = view.findViewById(R.id.totalWorkHours)
             val hourlyRate: TextView = view.findViewById(R.id.hourlyRate)
             val deductions: TextView = view.findViewById(R.id.deductions)
+            val btnSalaryReset: Button = view.findViewById(R.id.btnSalaryReset)
+            val buttonExpand: Button = view.findViewById(R.id.buttonExpand)
         }
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): SalaryViewHolder {
@@ -1206,7 +1216,7 @@ class SalaryFragment : Fragment() {
                 .inflate(R.layout.item_salary, parent, false)
             return SalaryViewHolder(view)
         }
-//사업주화면 전체 근로자 급여 내역
+
         override fun onBindViewHolder(holder: SalaryViewHolder, position: Int) {
             val workRecord = workRecordList[position]
             holder.tvNumber.text = (position + 1).toString()
@@ -1216,6 +1226,16 @@ class SalaryFragment : Fragment() {
             holder.totalWorkHours.text = "총 근무시간: ${workRecord.totalWorkHours}시간"
             holder.hourlyRate.text = "시급: ${workRecord.hourlyRate.toInt()}원"
             holder.deductions.text = "공제: ${workRecord.deductions}%"
+
+            // 급여 정보 수정 버튼 클릭 시
+            holder.btnSalaryReset.setOnClickListener {
+                showSalaryResetDialog(position)
+            }
+
+            // + 버튼 클릭 이벤트 (필요시 구현)
+            holder.buttonExpand.setOnClickListener {
+                // 필요한 추가 기능 구현
+            }
         }
 
         override fun getItemCount(): Int = workRecordList.size
@@ -1223,6 +1243,179 @@ class SalaryFragment : Fragment() {
         fun updateData(newData: List<Worker>) {
             workRecordList = newData
             notifyDataSetChanged()
+        }
+        private fun showSalaryResetDialog(position: Int) {
+            val workRecord = workRecordList[position]
+
+            val dialog = Dialog(context)
+            dialog.setContentView(R.layout.dialog_salary_input_emp)
+
+            val etHourlyRateEmp: EditText = dialog.findViewById(R.id.etHourlyRateEmp)
+            val etDeductionsEmp: EditText = dialog.findViewById(R.id.etDeductionsEmp)
+            val etWorkHoursEmp: EditText = dialog.findViewById(R.id.etWorkHoursEmp)
+            val btnSetSalaryEmp: Button = dialog.findViewById(R.id.btnSetSalaryEmp)
+            val etRate1Emp: EditText = dialog.findViewById(R.id.etRate1Emp)
+            val etRate2Emp: EditText = dialog.findViewById(R.id.etRate2Emp)
+            val etRate3Emp: EditText = dialog.findViewById(R.id.etRate3Emp)
+            val etRate4Emp: EditText = dialog.findViewById(R.id.etRate4Emp)
+            val etRate5Emp: EditText = dialog.findViewById(R.id.etRate5Emp)
+            val etRate6Emp: EditText = dialog.findViewById(R.id.etRate6Emp)
+            val etRate7Emp: EditText = dialog.findViewById(R.id.etRate7Emp)
+            val cbRateEmp: CheckBox = dialog.findViewById(R.id.cbRateEmp)
+
+            // 초기 상태 설정
+            val detailFields = listOf(
+                etRate1Emp, etRate2Emp, etRate3Emp, etRate4Emp, etRate5Emp, etRate6Emp, etRate7Emp
+            )
+
+            // 체크박스 이벤트(적용/비적용)
+            cbRateEmp.setOnCheckedChangeListener { _, isChecked ->
+                if (isChecked) {
+                    etDeductionsEmp.isEnabled = false
+                    detailFields.forEach { it.isEnabled = true }
+                } else {
+                    etDeductionsEmp.isEnabled = true
+                    detailFields.forEach { it.isEnabled = false }
+                }
+            }
+
+            // 초기값 설정
+            detailFields.forEach { it.isEnabled = false }
+
+            // 이니셜값 셋팅 (기존 데이터 활용)
+            etHourlyRateEmp.setText(workRecord.hourlyRate.toString())
+            etDeductionsEmp.setText(workRecord.deductions.toString())
+            etWorkHoursEmp.setText(workRecord.totalWorkHours.toString())
+
+            // 데이터베이스에서 해당 근로자의 급여 상세정보 불러오기
+            val databaseRef = FirebaseDatabase.getInstance().reference
+            databaseRef.child("worktimes").child(workRecord.uid)
+                .addListenerForSingleValueEvent(object : ValueEventListener {
+                    override fun onDataChange(snapshot: DataSnapshot) {
+                        // 데이터 가져오기
+                        val hourlyRateDb = snapshot.child("hourlyRate").getValue(Double::class.java) ?: workRecord.hourlyRate
+                        val deductionsPercentDb = snapshot.child("deductionsPercent").getValue(Double::class.java) ?: workRecord.deductions
+                        val rate1Db = snapshot.child("nationalPension").getValue(Double::class.java) ?: 4.5
+                        val rate2Db = snapshot.child("healthInsurance").getValue(Double::class.java) ?: 3.43
+                        val rate3Db = snapshot.child("employmentInsurance").getValue(Double::class.java) ?: 0.8
+                        val rate4Db = snapshot.child("industrialAccident").getValue(Double::class.java) ?: 0.65
+                        val rate5Db = snapshot.child("longTermCare").getValue(Double::class.java) ?: 1.27
+                        val rate6Db = snapshot.child("incomeTax").getValue(Double::class.java) ?: 1.0
+                        val rate7Db = snapshot.child("other").getValue(Double::class.java) ?: 0.0
+
+                        // UI에 데이터 세팅
+                        etHourlyRateEmp.setText(hourlyRateDb.toString())
+                        etDeductionsEmp.setText(deductionsPercentDb.toString())
+
+                        etRate1Emp.setText(rate1Db.toString())
+                        etRate2Emp.setText(rate2Db.toString())
+                        etRate3Emp.setText(rate3Db.toString())
+                        etRate4Emp.setText(rate4Db.toString())
+                        etRate5Emp.setText(rate5Db.toString())
+                        etRate6Emp.setText(rate6Db.toString())
+                        etRate7Emp.setText(rate7Db.toString())
+
+                        // 세부 설정 항목 존재 여부에 따라 체크박스 상태 결정
+                        val hasDetailedRates = snapshot.child("nationalPension").exists() ||
+                                snapshot.child("healthInsurance").exists() ||
+                                snapshot.child("employmentInsurance").exists() ||
+                                snapshot.child("industrialAccident").exists() ||
+                                snapshot.child("longTermCare").exists() ||
+                                snapshot.child("incomeTax").exists() ||
+                                snapshot.child("other").exists()
+
+                        cbRateEmp.isChecked = hasDetailedRates
+
+                        if (hasDetailedRates) {
+                            etDeductionsEmp.isEnabled = false
+                            detailFields.forEach { it.isEnabled = true }
+                        } else {
+                            etDeductionsEmp.isEnabled = true
+                            detailFields.forEach { it.isEnabled = false }
+                        }
+                    }
+
+                    override fun onCancelled(error: DatabaseError) {
+                        Toast.makeText(context, "데이터 로드 실패: ${error.message}", Toast.LENGTH_SHORT).show()
+                    }
+                })
+
+            btnSetSalaryEmp.setOnClickListener {
+                val hourlyRateValue = etHourlyRateEmp.text.toString().toDoubleOrNull() ?: 0.0
+                val workHoursValue = etWorkHoursEmp.text.toString().toDoubleOrNull() ?: 0.0
+
+                // 세부 공제율 항목 합산
+                val totalRate = if(cbRateEmp.isChecked) {
+                    (etRate1Emp.text.toString().toDoubleOrNull() ?: 0.0) +
+                            (etRate2Emp.text.toString().toDoubleOrNull() ?: 0.0) +
+                            (etRate3Emp.text.toString().toDoubleOrNull() ?: 0.0) +
+                            (etRate4Emp.text.toString().toDoubleOrNull() ?: 0.0) +
+                            (etRate5Emp.text.toString().toDoubleOrNull() ?: 0.0) +
+                            (etRate6Emp.text.toString().toDoubleOrNull() ?: 0.0) +
+                            (etRate7Emp.text.toString().toDoubleOrNull() ?: 0.0)
+                } else {
+                    etDeductionsEmp.text.toString().toDoubleOrNull() ?: 0.0
+                }
+
+                // 급여 계산
+                val totalSalary = hourlyRateValue * workHoursValue
+                val deductionsAmount = totalSalary * (totalRate / 100)
+                val finalSalary = totalSalary - deductionsAmount
+
+                // 데이터베이스 업데이트
+                val updates = mutableMapOf<String, Any>()
+
+                // 기본 정보 업데이트
+                updates["hourlyRate"] = hourlyRateValue
+                updates["deductionsPercent"] = totalRate
+                updates["workedHours"] = workHoursValue
+
+                // 체크박스 체크됨 = 세부 공제율 설정
+                if (cbRateEmp.isChecked) {
+                    updates["nationalPension"] = etRate1Emp.text.toString().toDoubleOrNull() ?: 0.0
+                    updates["healthInsurance"] = etRate2Emp.text.toString().toDoubleOrNull() ?: 0.0
+                    updates["employmentInsurance"] = etRate3Emp.text.toString().toDoubleOrNull() ?: 0.0
+                    updates["industrialAccident"] = etRate4Emp.text.toString().toDoubleOrNull() ?: 0.0
+                    updates["longTermCare"] = etRate5Emp.text.toString().toDoubleOrNull() ?: 0.0
+                    updates["incomeTax"] = etRate6Emp.text.toString().toDoubleOrNull() ?: 0.0
+                    updates["other"] = etRate7Emp.text.toString().toDoubleOrNull() ?: 0.0
+                }
+
+                // Firebase 데이터 업데이트
+                databaseRef.child("worktimes").child(workRecord.uid)
+                    .updateChildren(updates)
+                    .addOnSuccessListener {
+                        Toast.makeText(context, "${workRecord.name}님의 급여 정보가 업데이트되었습니다.", Toast.LENGTH_SHORT).show()
+
+                        // 로컬 데이터 업데이트
+                        val updatedWorker = workRecord.copy(
+                            hourlyRate = hourlyRateValue,
+                            deductions = totalRate,
+                            totalWorkHours = workHoursValue,
+                            salaryAmount = finalSalary
+                        )
+
+                        // 리스트 업데이트
+                        val updatedList = workRecordList.toMutableList()
+                        updatedList[position] = updatedWorker
+                        workRecordList = updatedList
+                        notifyItemChanged(position)
+
+                        // Fragment의 함수 호출을 위한 콜백 실행
+                        onUpdateRequest(workRecord.uid)
+
+                        dialog.dismiss()
+                    }
+                    .addOnFailureListener { e ->
+                        Toast.makeText(context, "업데이트 실패: ${e.message}", Toast.LENGTH_SHORT).show()
+                    }
+            }
+
+            dialog.window?.setLayout(
+                WindowManager.LayoutParams.MATCH_PARENT,
+                WindowManager.LayoutParams.WRAP_CONTENT
+            )
+            dialog.show()
         }
     }
 }

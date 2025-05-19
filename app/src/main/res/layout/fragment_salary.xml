@@ -55,6 +55,9 @@
                 android:layout_height="match_parent"
                 android:orientation="vertical">
                 <!-- 근로자 화면 -->
+
+                <!-- 사업주 화면 -->
+
                 <LinearLayout
                     android:id="@+id/LinEmp"
                     android:layout_width="match_parent"
@@ -78,15 +81,15 @@
                         android:id="@+id/tvGrossPay"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:layout_marginTop="5dp"
                         android:text="총 급여액: 0원"
-                        android:textSize="25dp"
-                        android:layout_marginTop="5dp" />
+                        android:textSize="25dp" />
 
                     <TextView
                         android:id="@+id/workDays"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="근무일수: 0일"/>
+                        android:text="근무일수: 0일" />
 
                     <TextView
                         android:id="@+id/totalWorkHours"
@@ -180,7 +183,6 @@
                     </LinearLayout>
                 </LinearLayout>
 
-                <!-- 사업주 화면 -->
                 <LinearLayout
                     android:id="@+id/LinOwner"
                     android:layout_width="match_parent"

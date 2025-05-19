@@ -450,7 +450,7 @@ class WorkRecordFragment : Fragment() {
                         Toast.makeText(requireContext(), "해당 기간의 기록이 없습니다.", Toast.LENGTH_SHORT).show()
                     }
 
-                    // ✅ 콜백 호출
+                    //  콜백 호출
                     onResult(records)
                 }
 
